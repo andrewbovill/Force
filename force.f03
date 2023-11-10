@@ -21,7 +21,7 @@ INCLUDE 'force_mod.f03'
       real(kind=real64)::timeStart,timeEnd,test
       real(kind=real64),dimension(:),allocatable::moEnergiesAlpha,moEnergiesBeta
       real(kind=real64),dimension(:,:),allocatable::CAlpha,CBeta,  &
-        tmpMatrix1,tmpMatrix2
+        tmpMatrix1,tmpMatrix2,tmpMatrix3
       type(MQC_Variable)::ERIs,mqcTmpArray
       character(len=512)::matrixFilename
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
@@ -30,6 +30,7 @@ INCLUDE 'force_mod.f03'
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(:),allocatable::moCoeff,density,overlap
       type(mqc_scf_integral),dimension(3)::dipole
+      type(mqc_matrix)::p,ca,cb,q
 !
 !     Format Statements
 !
@@ -85,6 +86,22 @@ allocate(overlap(1))
       call dipole(1)%print(iOut,'Dipole x matrix')
       call moCoeff(1)%print(iOut,'MO Coefficient matrix')
       call density(1)%print(iOut,'Density')
+      
+      ca = moCoeff(1)
+      CAlpha = ca  
+
+      cb = moCoeff(1)
+      CBeta = cb 
+
+      tmpMatrix1 = MatMul(CAlpha(:,1:nElectronsAlpha),Transpose(CAlpha(:,1:nElectronsAlpha)))
+!     tmpMatrix1 = matmul(CAlpha(:,nElectronsAlpha),tmpMatrix2(:,nElectronsAlpha))
+
+      p = matmul(moCoeff(1),transpose(moCoeff(1)))
+      q = tmpMatrix1
+
+!     call p%print(IOut,'Density calculated from CtC')
+      call q%print(IOut,'Density calculated from intrisic fortran matrices CtC')
+
 
 !
 !     Mulliken contraction
