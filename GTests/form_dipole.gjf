@@ -1,0 +1,10 @@
+%chk=form_dipole.chk
+#P 6-31G blyp geom=modela output=mat
+
+formaldehyde dipole check
+
+0 1
+c o h h
+
+form_dipole.mat
+

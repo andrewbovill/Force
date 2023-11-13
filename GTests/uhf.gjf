@@ -1,0 +1,9 @@
+%chk=uhf.chk
+#p uhf sto-3g geom=modela output=mat
+
+testing mqc
+
+0 1
+o h h 
+
+uhf.mat

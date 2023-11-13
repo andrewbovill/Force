@@ -1,0 +1,9 @@
+%chk=h2o_dipole.chk
+#P 6-31G blyp geom=modela output=mat
+
+h2o dipole check
+
+0 1
+o h h
+
+h2o_dipole.mat
