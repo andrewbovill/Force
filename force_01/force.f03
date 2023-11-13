@@ -1,10 +1,12 @@
 INCLUDE 'force_mod.f03'
       program force
-!
-!     This program is a test program to compute transition dipole moments with
-!     MQC. The overall purpose of this program is a straightforward
-!     implementation of MQC routines in comparison to calculating explicitly
-!     with intrinsic Fortran routines.
+!     force_01
+!     
+!     This program is a precursoe program to coding transition dipole moments.
+!     The purpose of this code is the following
+!       1. Read in a Gaussian matrix file
+!       2. Read the dipole integrals and the HF Particle density matrix.
+!       3. Compute dipole moment and magnitude, match against Gaussian.
 !
 !     -A. J. Bovill, 2023.
 !
@@ -64,6 +66,7 @@ INCLUDE 'force_mod.f03'
       nElectronsBeta = Int(GMatrixFile%getVal('nBeta'))
       write(IOut,1100) nAtoms,nBasis,nBasisUse,nElectrons,  &
         nElectronsAlpha,nElectronsBeta
+      write(*,*)
 
 !
 !     Allocate Molecular Orbital Coefficients and Densities
@@ -79,28 +82,32 @@ allocate(density(1))
       call GMatrixFile%getESTObj('dipole z',est_integral=dipole(3))
       call Gmatrixfile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GmatrixFile%getESTObj('density',est_integral=density(1))
-
-      call dipole(1)%print(iOut,'Dipole x matrix')
-      call moCoeff(1)%print(iOut,'MO Coefficient matrix')
-      call density(1)%print(iOut,'Density')      
-
-      call tdm%init(3)
-      do j = 1,3
-      !  call tdm%put((-1)*dipole(j),j)
-      enddo
-      call tdm%print(iOut,'Total Dipole Moment')
+!     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
+!     what we care about are the atomic charges and cartesian coordinates.
+      call GmatrixFile%getMolData(molData)
 !
-!     Obtain nuclear dipole moment
+!     Obtain nuclear dipole moment, classical component of total dipole moment.
 !
       nuclear_dipole = matmul(transpose(molData%Nuclear_Charges),& 
         transpose(molData%Cartesian_Coordinates))
-!     
-!     call tdm%init(3)
-!       do j = 1,3
-!         call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
-!     enddo
-!     call tdm%print(iOut,'Total Dipole Moment')
+      call nuclear_dipole%print(iOut,"Nuclear Dipole") 
 !
+!     Initialize total dipole moment vector and compute.
+!
+      call tdm%init(3)
+      do j = 1,3
+         call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
+      enddo
+      call tdm%print(iOut,'Total Dipole Moment')
+!
+!     Compare against electric dipole moment from gaussian.
+!
+      call tdm%init(3)
+      do j = 1,3
+         call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
+      enddo
+      call tdm%print(iOut,'Total Dipole Moment')
+
   999 Continue
       call cpu_time(timeEnd)
       write(iOut,5000) 'TOTAL JOB TIME',timeEnd-timeStart
