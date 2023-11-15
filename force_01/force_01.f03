@@ -27,7 +27,7 @@ INCLUDE 'force_01_mod.f03'
       type(MQC_Variable)::ERIs,mqcTmpArray
       character(len=512)::matrixFilename
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
-      type(mqc_vector)::tdm,nuclear_dipole
+      type(mqc_vector)::tdm,tdm_deb,nuclear_dipole
       type(mqc_molecule_data)::molData
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(:),allocatable::moCoeff,density
@@ -98,15 +98,13 @@ allocate(density(1))
       do j = 1,3
          call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
       enddo
-      call tdm%print(iOut,'Total Dipole Moment')
-!
-!     Compare against electric dipole moment from gaussian.
-!
-      call tdm%init(3)
+      call tdm%print(iOut,'Total Dipole Moment in atomic units')
+
+      call tdm_deb%init(3)
       do j = 1,3
-         call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
+         call tdm_deb%put((tdm%at(j))/0.393456,j)
       enddo
-      call tdm%print(iOut,'Total Dipole Moment')
+      call tdm_deb%print(iOut,'Total Dipole Moment in Debyes')
 
   999 Continue
       call cpu_time(timeEnd)
