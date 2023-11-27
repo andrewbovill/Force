@@ -28,27 +28,40 @@ INCLUDE 'force_02_mod.f03'
 !     Variable Declarations
 !
       implicit none
-      integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis,  &
-        nBasisUse,nElectrons,nElectronsAlpha,nElectronsBeta
+      integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
+        nBasisUse,nElectrons,nElectronsAlpha,nElectronsBeta, &   
+        nOcc,nVirt,nMOs,nOV,iDetRef
       integer(kind=int64)::i,j
+!     Andrew integer arrays for singles and doubles
+      integer(kind=int64),dimension(:),allocatable::iDetSingles,IDetDoubles
       real(kind=real64)::timeStart,timeEnd,test
-      real(kind=real64),dimension(:),allocatable::moEnergiesAlpha,moEnergiesBeta
-      real(kind=real64),dimension(:,:),allocatable::CAlpha,CBeta  
-      type(MQC_Variable)::ERIs,mqcTmpArray
+!     Andrew conversion factor from a.u.s to Debyes
+      real(kind=real64),parameter:: scale_debye=2.54158025294
+      real(kind=real64),dimension(:),allocatable::moEnergiesAlpha,moEnergiesBeta 
+      type(MQC_Variable)::ERIs,mqcTmpArray,CAlpha,CBeta
       character(len=512)::matrixFilename
+!     Andrew dipole vectors in atomic units
+      type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au
+!     Andrew dipole vectors in Debyes
+      type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
-      type(mqc_vector)::nuclear_dipole,tdm,tdm_ci
       type(mqc_molecule_data)::molData
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(:),allocatable::moCoeff,density
       type(mqc_scf_integral),dimension(3)::dipole
+
 !
 !     Format Statements
 !
+
  1000 Format(1x,'Enter Test program force_02.')
  1010 Format(1x,'Matrix File: ',A,/)
- 1100 Format(1x,'nAtoms    =',I4,6x,'nBasis  =',I4,6x,'nBasisUse=',I4,/,  &
+ 1020 Format(1x,'nAtoms    =',I4,6x,'nBasis  =',I4,6x,'nBasisUse=',I4,/,  &
              1x,'nElectrons=',I4,6x,'nElAlpha=',I4,6x,'nElBeta  =',I4)
+ 1030 Format(1x,'nMos      =',I4,6x,'nOcc    =',I4,6x,'nVirt    =',I4,/,  &
+             1x,'nOv       =',I4)
+ 1040 format(1x,a,': ',b31)
+ 1050 format(1x,a,1x,i5,': ',b31)
  5000 Format(1x,'Time (',A,'): ',f8.1,' s.')
  8999 Format(/,1x,'END OF program force_02.')
 !
@@ -74,17 +87,18 @@ INCLUDE 'force_02_mod.f03'
       nElectrons = Int(GMatrixFile%getVal('nelectrons'))
       nElectronsAlpha = Int(GMatrixFile%getVal('nAlpha'))
       nElectronsBeta = Int(GMatrixFile%getVal('nBeta'))
-      write(IOut,1100) nAtoms,nBasis,nBasisUse,nElectrons,  &
+      write(IOut,1020) nAtoms,nBasis,nBasisUse,nElectrons,  &
         nElectronsAlpha,nElectronsBeta
       write(*,*)
 !
 !     Check if input matrix file is restricted or unrestricted
 !
-      call GMatrixFile1%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=CAlpha1)
-      if(GMatrixFile1%isUnrestricted()) then
-        call GMatrixFile1%getArray('BETA MO COEFFICIENTS',mqcVarOut=CBeta1)
+      call GMatrixFile%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=CAlpha)
+      if(GMatrixFile%isUnrestricted()) then
+        call GMatrixFile%getArray('BETA MO COEFFICIENTS',mqcVarOut=CBeta)
       else
-        CBeta1 = CAlpha1
+        CBeta = CAlpha
+      endif
 
 !
 !     Allocate Molecular Orbital Coefficients and Densities
@@ -107,22 +121,50 @@ allocate(density(1))
 !
 !     Obtain nuclear dipole moment, classical component of total dipole moment.
 !
-      nuclear_dipole = matmul(transpose(molData%Nuclear_Charges),& 
+      nuclear_dipole_au = matmul(transpose(molData%Nuclear_Charges),& 
         transpose(molData%Cartesian_Coordinates))
-      call nuclear_dipole%print(iOut,"Nuclear Dipole") 
+      call nuclear_dipole_au%print(iOut,"Nuclear Dipole in Atomic units") 
 !
 !     Initialize total dipole moment vector and compute.
 !
-      call tdm%init(3)
+      call tdm_au%init(3)
       do j = 1,3
-         call tdm%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole%at(j),j)
+         call tdm_au%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
-      call tdm%print(iOut,'Total Dipole Moment')
+      call tdm_au%print(iOut,'Total Dipole Moment in atomic units')
+!
+!     Compute Dipole Moment in Debyes
+!
 
+      call tdm_db%init(3)
+      do j = 1,3
+         call tdm_db%put(tdm_au%at(j)*scale_debye,j)
+      enddo
+
+      call tdm_db%print(iOut,'Total Dipole Moment in atomic units')
 !
 !     Compute dipole moment from the 'CI_Dipole' routine
+!     Obtain first the singly substituted determinats and store in array
 !
-!     call check       
+
+      nMos = nBasisUse
+      nOcc = nElectronsAlpha
+      nVirt = nMOs-nOcc
+      nOV = nOcc*nVirt
+
+      write(iOut,1030) nMos,nOcc,nVirt,nOV
+      Allocate(iDetSingles(nOV))
+!
+!     Build Reference Determinant and Singles list
+!
+      call ref_det(nMos,nOcc,iDetRef)
+      call build_singles(nMos,nOcc,nVirt,nOV,iDetRef,iDetSingles)
+
+      write(iOut,1040) 'Reference',iDetRef
+      do i = 1,nOV
+        write(iOut,1050) 'Singles',i,iDetSingles(i)
+      enddo 
+
 
   999 Continue
       call cpu_time(timeEnd)
