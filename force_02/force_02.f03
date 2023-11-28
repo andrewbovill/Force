@@ -46,10 +46,11 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(:),allocatable::moCoeff,density
       type(mqc_scf_integral),dimension(3)::dipole
-
+!     Andrew --Holds CI_Dipole_moment matrix
+      type(mqc_matrix),dimension(3)::CI_Dipole
+      type(mqc_determinant)::det
 !
 !     Format Statements
 !
@@ -124,6 +125,10 @@ allocate(density(1))
       nuclear_dipole_au = matmul(transpose(molData%Nuclear_Charges),& 
         transpose(molData%Cartesian_Coordinates))
       call nuclear_dipole_au%print(iOut,"Nuclear Dipole in Atomic units") 
+
+      call dipole(1)%print(iOut," Dipole in Atomic units") 
+      call dipole(2)%print(iOut," Dipole in Atomic units") 
+      call dipole(3)%print(iOut," Dipole in Atomic units") 
 !
 !     Initialize total dipole moment vector and compute.
 !
@@ -164,7 +169,26 @@ allocate(density(1))
       do i = 1,nOV
         write(iOut,1050) 'Singles',i,iDetSingles(i)
       enddo 
+!
+!     Read iDetsingles into CI_Hamiltonian Routine
+!
 
+!
+!     NOTE FOR HRANT ---- trying to get determinant "det" built to do
+!     CI Dipole calculation, yet "trci_dets_string" is not working
+!     gen_det_str is. Figuring out what issue it is
+!
+!     call gen_det_str(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta,det)
+
+      call trci_dets_string(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta, &
+        IDetSingles,det)
+      CI_Dipole = CI_Dipole_build(moCoeff(1),dipole,iDetSingles)
+
+      call tdm_ci_au%init(3)
+      do j = 1,3
+         call tdm_ci_au%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole_au%at(j),j)
+      enddo
+      call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
 
   999 Continue
       call cpu_time(timeEnd)
