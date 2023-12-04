@@ -45,10 +45,10 @@
 
       end subroutine ref_det
 
-      subroutine build_singles(nMos,nOcc,nVirt,nOV,iDetRef,IDetSingles)
+      subroutine build_singles(nMos,nOcc,nVirt,nOV,iDetRef,iDetSingles)
 
       integer(kind=int64),intent(in)::nOcc,nMOs,nVirt,nOV,iDetRef
-      integer(kind=int64),dimension(:),intent(inout)::IDetSingles
+      integer(kind=int64),dimension(:),intent(inout)::iDetSingles
       integer(kind=int64)::i,ia,ii
 
  
@@ -67,5 +67,59 @@
       endDo
 
       end subroutine build_singles
+!
+!     Andrew build out CI_hamiltonian
+!
+        function dipole_expectation_value(bra,dipole,ket) result(dipoleEV)
+!
+!Transforms the Atomic Orbital basis dipole operator provided in the Gaussian
+!output files to the Molecular orbital basis.
+!
+        implicit none
+
+        type(mqc_scf_integral),dimension(3),intent(in)::dipole
+        type(mqc_scf_integral),intent(in)::bra,ket
+        type(mqc_scf_integral),dimension(3)::dipoleEV
+        integer(kind=int64)::i
+
+!       do i = 1,3
+!               dipoleEV(i)=matmul(matmul(dagger(bra),dipole(i)),ket)
+!       enddo
+
+      end function dipole_expectation_value
+
+      function CI_Dipole_build(moCoeff,wavefunction,dipole,iDetSingles,nBasis, & 
+          nElectronsAlpha,nElectronsBeta) result(CI_Dipole)
+
+      implicit none
+
+      type(mqc_pscf_wavefunction),intent(in)::wavefunction
+      type(mqc_scf_integral),dimension(3),intent(in)::dipole
+      type(mqc_scf_integral),intent(in)::moCoeff
+      integer(kind=int64),dimension(:),intent(in)::iDetSingles
+      integer(kind=int64),intent(in)::nBasis,nElectronsAlpha,nElectronsBeta
+      type(mqc_matrix),dimension(3),intent(out)::CI_Dipole
+      type(mqc_scf_integral),dimension(3)::dipoleMO
+      integer(kind=int64)::i
+      type(mqc_determinant)::det
+      type(mqc_scalar)::mqcnBasis
+      integer(kind=int64)::iPrint=0
+
+      mqcnBasis = nBasis
+
+      call trci_dets_string(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta, &
+        IDetSingles,det)
+!
+!     Transform from AO to MO basis
+!
+      dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
+      
+      do i=1,3
+         call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
+              dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
+         call CI_Dipole(i)%print(iOut,"CI Dipole")
+      enddo
+        
+      end function CI_Dipole_build
 
       end module force_02_mod

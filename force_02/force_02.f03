@@ -46,7 +46,8 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::moCoeff,density
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff
+      type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(3)::dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
@@ -116,6 +117,7 @@ allocate(density(1))
       call GMatrixFile%getESTObj('dipole z',est_integral=dipole(3))
       call Gmatrixfile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GmatrixFile%getESTObj('density',est_integral=density(1))
+      call GmatrixFile%getESTObj('wavefunction',wavefunction)
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
       call GmatrixFile%getMolData(molData)
@@ -172,22 +174,22 @@ allocate(density(1))
 !
 !     Read iDetsingles into CI_Hamiltonian Routine
 !
-
-!
 !     NOTE FOR HRANT ---- trying to get determinant "det" built to do
 !     CI Dipole calculation, yet "trci_dets_string" is not working
 !     gen_det_str is. Figuring out what issue it is
-!
-!     call gen_det_str(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta,det)
 
-      call trci_dets_string(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta, &
-        IDetSingles,det)
-      CI_Dipole = CI_Dipole_build(moCoeff(1),dipole,iDetSingles)
+!
+!     Calling CI_Dipole_build routine to build out mqc_matrix object
+!       
+
+      CI_Dipole =  CI_Dipole_build(moCoeff(1),wavefunction,dipole,iDetSingles,nBasis, &
+        nElectronsAlpha,nElectronsBeta) 
 
       call tdm_ci_au%init(3)
       do j = 1,3
          call tdm_ci_au%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
+
       call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
 
   999 Continue
