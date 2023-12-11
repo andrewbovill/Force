@@ -99,24 +99,70 @@
       integer(kind=int64),dimension(:),intent(in)::iDetSingles
       integer(kind=int64),intent(in)::nBasis,nElectronsAlpha,nElectronsBeta
       type(mqc_matrix),dimension(3),intent(out)::CI_Dipole
+      type(mqc_matrix)::tmpmat
       type(mqc_scf_integral),dimension(3)::dipoleMO
-      integer(kind=int64)::i
+      integer(kind=int64)::i,j
       type(mqc_determinant)::det
       type(mqc_scalar)::mqcnBasis
-      integer(kind=int64)::iPrint=0
+      type(mqc_vector)::subs
+      integer(kind=int64)::iPrint=4
 
       mqcnBasis = nBasis
+!
+!     Call trci_det_strings to get determinant, note "iPrint=4" prints alpha
+!     strings as binary representation
+!
 
-      call trci_dets_string(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta, &
-        IDetSingles,det)
+!     call gen_det_str(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta,det)
+      write(*,*)
+      write(*,*) "Andrew printing out idetSingles"
+      do i = 1,10
+        write(*,*) idetsingles(i)
+      end do
+      write(*,*) size(idetsingles)
+!
+!     Lee -- I'm having difficulty using the trci_dets function to only obtain
+!     singly substituted determinants for any matrix file that I call, I believe 
+!     the iDetSingles array should be the correct type of array going into your
+!     program... but the output is only a single element
+! 
+!     I understand that "Alpha_string" and "Beta_String" are matrices not
+!     arrays due to needing more thant 32 bits to describe a determinant, but I
+!     am unsure how to print out only the single substitutions, how exactly can
+!     I do this properly? 
+
+!     This commented out part here is for a general case for fullci dets that does work
+!     call gen_det_str(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta,det)
+
+      call trci_dets_string(iOut,4,nBasis,nElectronsAlpha,nElectronsBeta, &
+        idetsingles,det)
+!
+!     Print out j which should match number of single substituted determinant
+!     combos
+!
+      j = 0
+      j = det%nDets
+      write(*,*) j
+!
+!     Print out Alpha and beta strings to debug against, note both are matrices
+!
+      call det%Strings%Alpha%print(iOut,"Alpha strings")
+      call det%Strings%Beta%print(iOut,"Beta strings")
+
 !
 !     Transform from AO to MO basis
 !
       dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
       
       do i=1,3
+!     Lee -- This part is giving the following error regardless if I
+!     use 'gen_det_str' or trci_det_str for a uhf calculation
+!
+!     The error is 'MQC ERROR: Slater_Condon only implemented for  spin or space
+!     one-particle integrals
+!
          call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
-              dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
+              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i))
          call CI_Dipole(i)%print(iOut,"CI Dipole")
       enddo
         
