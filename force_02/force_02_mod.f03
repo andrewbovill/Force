@@ -106,6 +106,7 @@
       type(mqc_scalar)::mqcnBasis
       type(mqc_vector)::subs
       integer(kind=int64)::iPrint=4
+      integer, dimension(1) :: myArray = 1
 
       mqcnBasis = nBasis
 !
@@ -135,7 +136,7 @@
 !     call gen_det_str(iOut,iPrint,nBasis,nElectronsAlpha,nElectronsBeta,det)
 
       call trci_dets_string(iOut,4,nBasis,nElectronsAlpha,nElectronsBeta, &
-        idetsingles,det)
+        myArray,det)
 !
 !     Print out j which should match number of single substituted determinant
 !     combos
