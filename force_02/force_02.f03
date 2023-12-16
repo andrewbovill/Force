@@ -29,16 +29,13 @@ INCLUDE 'force_02_mod.f03'
 !
       implicit none
       integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
-        nBasisUse,nElectrons,nElectronsAlpha,nElectronsBeta, &   
-        nOcc,nVirt,nMOs,nOV,iDetRef
+        nBasisUse,nElec,nAlpha,nBeta, &   
+        nOcc,nVirt,nMOs,nOV,nA,nB,nDet
       integer(kind=int64)::i,j
 !     Andrew integer arrays for singles and doubles
-      integer(kind=int64),dimension(:),allocatable::iDetSingles,IDetDoubles
       real(kind=real64)::timeStart,timeEnd,test
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025294
-      real(kind=real64),dimension(:),allocatable::moEnergiesAlpha,moEnergiesBeta 
-      type(MQC_Variable)::ERIs,mqcTmpArray,CAlpha,CBeta
       character(len=512)::matrixFilename
 !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au
@@ -46,11 +43,12 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,left,right
       type(mqc_pscf_wavefunction)::wavefunction
-      type(mqc_scf_integral),dimension(3)::dipole
+      type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
+      type(mqc_matrix)::Nfi_mat
       type(mqc_determinant)::det
 !
 !     Format Statements
@@ -59,7 +57,7 @@ INCLUDE 'force_02_mod.f03'
  1000 Format(1x,'Enter Test program force_02.')
  1010 Format(1x,'Matrix File: ',A,/)
  1020 Format(1x,'nAtoms    =',I4,6x,'nBasis  =',I4,6x,'nBasisUse=',I4,/,  &
-             1x,'nElectrons=',I4,6x,'nElAlpha=',I4,6x,'nElBeta  =',I4)
+             1x,'nElec=',I4,6x,'nElAlpha=',I4,6x,'nElBeta  =',I4)
  1030 Format(1x,'nMos      =',I4,6x,'nOcc    =',I4,6x,'nVirt    =',I4,/,  &
              1x,'nOv       =',I4)
  1040 format(1x,a,': ',b31)
@@ -86,27 +84,14 @@ INCLUDE 'force_02_mod.f03'
       nAtoms = GMatrixFile%getVal('nAtoms')
       nBasis = Int(GMatrixFile%getVal('nbasis'))
       nBasisUse = Int(GMatrixFile%getVal('nbasisuse'))
-      nElectrons = Int(GMatrixFile%getVal('nelectrons'))
-      nElectronsAlpha = Int(GMatrixFile%getVal('nAlpha'))
-      nElectronsBeta = Int(GMatrixFile%getVal('nBeta'))
-      write(IOut,1020) nAtoms,nBasis,nBasisUse,nElectrons,  &
-        nElectronsAlpha,nElectronsBeta
+      nElec = Int(GMatrixFile%getVal('nelectrons'))
+      nAlpha = Int(GMatrixFile%getVal('nAlpha'))
+      nBeta = Int(GMatrixFile%getVal('nBeta'))
+      write(IOut,1020) nAtoms,nBasis,nBasisUse,nElec,  &
+        nAlpha,nBeta
       write(*,*)
 !
 !     Check if input matrix file is restricted or unrestricted
-!
-      call GMatrixFile%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=CAlpha)
-      if(GMatrixFile%isUnrestricted()) then
-        call GMatrixFile%getArray('BETA MO COEFFICIENTS',mqcVarOut=CBeta)
-      else
-        CBeta = CAlpha
-      endif
-
-!
-!     Allocate Molecular Orbital Coefficients and Densities
-!     The 'mqc_scf_integral' type stores matrices in a vector  
-!     Change the dimensions of vector allocated on number of input mat files
-!     ...Check with Hrant
 !
 
 allocate(moCoeff(1))
@@ -148,46 +133,51 @@ allocate(density(1))
          call tdm_db%put(tdm_au%at(j)*scale_debye,j)
       enddo
 
-      call tdm_db%print(iOut,'Total Dipole Moment in atomic units')
+      call tdm_db%print(iOut,'Total Dipole Moment in Debyes')
+
 !
 !     Compute dipole moment from the 'CI_Dipole' routine
-!     Obtain first the singly substituted determinats and store in array
 !
 
       nMos = nBasisUse
-      nOcc = nElectronsAlpha
+      nOcc = nAlpha
       nVirt = nMOs-nOcc
       nOV = nOcc*nVirt
 
       write(iOut,1030) nMos,nOcc,nVirt,nOV
-      Allocate(iDetSingles(nOV))
-!
-!     Build Reference Determinant and Singles list
-!
-      call ref_det(nMos,nOcc,iDetRef)
-      call build_singles(nMos,nOcc,nVirt,nOV,iDetRef,iDetSingles)
-
-      write(iOut,1040) 'Reference',iDetRef
-      do i = 1,nOV
-        write(iOut,1050) 'Singles',i,iDetSingles(i)
-      enddo 
-!
-!     Read iDetsingles into CI_Hamiltonian Routine
-!
-!     NOTE FOR HRANT ---- trying to get determinant "det" built to do
-!     CI Dipole calculation, yet "trci_dets_string" is not working
-!     gen_det_str is. Figuring out what issue it is
-
 !
 !     Calling CI_Dipole_build routine to build out mqc_matrix object
 !       
+!     call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta, &
+!       SingleArray,det)
+      
+      call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det)
 
-      CI_Dipole =  CI_Dipole_build(moCoeff(1),wavefunction,dipole,iDetSingles,nBasis, &
-        nElectronsAlpha,nElectronsBeta) 
+      CI_Dipole = CI_Dipole_build(moCoeff(1),wavefunction,dipole,nBasis, & 
+          nAlpha,nBeta,det) 
 
+!
+!     Initialize Non_Orthogonal Matrix to be ndet*ndet
+!
+
+      nA = mqc_matrix_rows(det%Strings%Alpha)
+      nB = mqc_matrix_rows(det%Strings%Beta)
+      nDet = nA*nB
+
+      write(*,*) "Andrew check nDet", nDet
+
+      call Nfi_mat%init(nDet,nDet) 
+      
+      Nfi_mat = NO_Overlap(moCoeff(1),det,nBasis,nAlpha,nBeta) 
+      
+!     call Nfi_mat%print(iOut, "Nonorthogonal Overlap")
+!
+!     Turn density into mqc_matrix type object to contract with CI_dipole
+!
+      
       call tdm_ci_au%init(3)
       do j = 1,3
-         call tdm_ci_au%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole_au%at(j),j)
+         call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
 
       call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')

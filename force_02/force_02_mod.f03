@@ -112,17 +112,15 @@
         
       end function CI_Dipole_build
 
-      function NO_Overlap(bra, ket, bra_coeff, ket_coeff,det) result(Nfi_mat)
+      function NO_Overlap(bra,det,nBasis,nAlpha,nBeta) result(Nfi_mat)
 
       implicit none
 
-      type(mqc_pscf_wavefunction)::bra,ket
-      type(mqc_matrix)::Nfi_mat,bra_occ,ket_occ,Mij
-      real(kind=real64)::tempnij
-      type(mqc_scalar)::Nij
-      type(mqc_determinant)::det
-      type(mqc_scf_integral)::bra_coeff,ket_coeff,single,overlap,left,right
-      integer(kind=int64)::a,b,i,j,nOcc,nBasis,nAlpha,nBeta,nA,nB,LA,LB,RA,RB,L,R,nDet       
+      integer(kind=int64),intent(in)::nAlpha,nBeta,nBasis
+      type(mqc_scf_integral),intent(in)::bra
+      type(mqc_determinant),intent(in)::det
+      type(mqc_matrix),intent(out)::Nfi_mat
+
 
       end function NO_Overlap
 
