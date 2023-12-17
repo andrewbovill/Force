@@ -43,7 +43,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,left,right
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
@@ -155,7 +155,6 @@ allocate(density(1))
 
       CI_Dipole = CI_Dipole_build(moCoeff(1),wavefunction,dipole,nBasis, & 
           nAlpha,nBeta,det) 
-
 !
 !     Initialize Non_Orthogonal Matrix to be ndet*ndet
 !
@@ -164,17 +163,15 @@ allocate(density(1))
       nB = mqc_matrix_rows(det%Strings%Beta)
       nDet = nA*nB
 
-      write(*,*) "Andrew check nDet", nDet
+      Nfi_mat = NO_Overlap(moCoeff(1),wavefunction,det,nBasis,nAlpha,nBeta,nDet)
 
-      call Nfi_mat%init(nDet,nDet) 
-      
-      Nfi_mat = NO_Overlap(moCoeff(1),det,nBasis,nAlpha,nBeta) 
+!     call Nfi_mat%print(iOut,"Nonorthogonal matrix") 
       
 !     call Nfi_mat%print(iOut, "Nonorthogonal Overlap")
 !
 !     Turn density into mqc_matrix type object to contract with CI_dipole
 !
-      
+
       call tdm_ci_au%init(3)
       do j = 1,3
          call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)

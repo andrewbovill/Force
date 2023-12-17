@@ -89,13 +89,8 @@
 !
 !     Transform from AO to MO basis
 !
-      write(*,*) 
-      write(*,*) "Andrew starting here 1"
 
       dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
-      
-      write(*,*) 
-      write(*,*) "Andrew starting here 2"
 
 !     do i=1,3
 !       call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
@@ -112,15 +107,25 @@
         
       end function CI_Dipole_build
 
-      function NO_Overlap(bra,det,nBasis,nAlpha,nBeta) result(Nfi_mat)
+      function NO_Overlap(moCoeff,wavefunction,det,nBasis,nAlpha,nBeta,nDet) result(Nfi_mat)
 
       implicit none
 
-      integer(kind=int64),intent(in)::nAlpha,nBeta,nBasis
-      type(mqc_scf_integral),intent(in)::bra
+      integer(kind=int64),intent(in)::nAlpha,nBeta,nBasis,nDet
+      integer(kind=int64)::i,j
+      type(mqc_pscf_wavefunction),intent(in)::wavefunction
+      type(mqc_scf_integral),intent(in)::moCoeff
       type(mqc_determinant),intent(in)::det
+      type(mqc_scf_integral)::overlap
       type(mqc_matrix),intent(out)::Nfi_mat
 
+      overlap = wavefunction%overlap_matrix
+
+      do i = 1,nDet
+        do j = 1,nDet
+          !Nfi_mat = tmp_nfi
+        end do
+      end do
 
       end function NO_Overlap
 
