@@ -92,18 +92,19 @@
 
       dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
 
+
 !     do i=1,3
 !       call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
-!         dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),SingleArray)
+!         dipoleMO(i),mo_ERIs,UHF=.true.,CI_Hamiltonian=CI_Dipole(i),SingleArray)
 !       call CI_Dipole(i)%print(iOut,"CI Dipole")
 !     enddo
 
-      do i=1,3
-         write(*,*)
-         call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
-              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i))
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
+!     do i=1,3
+!        write(*,*)
+!        call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
+!             dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i))
+!        call CI_Dipole(i)%print(iOut,"CI Dipole")
+!     enddo
         
       end function CI_Dipole_build
 

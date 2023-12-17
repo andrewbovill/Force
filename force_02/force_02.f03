@@ -50,6 +50,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_matrix),dimension(3)::CI_Dipole
       type(mqc_matrix)::Nfi_mat
       type(mqc_determinant)::det
+      type(mqc_twoERIs)::eris,mo_ERIs
 !
 !     Format Statements
 !
@@ -103,6 +104,7 @@ allocate(density(1))
       call Gmatrixfile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GmatrixFile%getESTObj('density',est_integral=density(1))
       call GmatrixFile%getESTObj('wavefunction',wavefunction)
+      call GmatrixFile%get2ERIs('regular',eris)
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
       call GmatrixFile%getMolData(molData)
