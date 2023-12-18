@@ -43,14 +43,15 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
       type(mqc_matrix)::Nfi_mat
       type(mqc_determinant)::det
-      type(mqc_twoERIs)::eris,mo_ERIs
+      type(mqc_twoERIs)::ERIS,mo_ERIs
+      integer, dimension(1) :: SingleArray = 1
 !
 !     Format Statements
 !
@@ -101,6 +102,7 @@ allocate(density(1))
       call GMatrixFile%getESTObj('dipole x',est_integral=dipole(1))
       call GMatrixFile%getESTObj('dipole y',est_integral=dipole(2))
       call GMatrixFile%getESTObj('dipole z',est_integral=dipole(3))
+      !call GMatrixFile%getESTObj('overlap',est_integral=overlap(1))
       call Gmatrixfile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GmatrixFile%getESTObj('density',est_integral=density(1))
       call GmatrixFile%getESTObj('wavefunction',wavefunction)
@@ -150,13 +152,11 @@ allocate(density(1))
 !
 !     Calling CI_Dipole_build routine to build out mqc_matrix object
 !       
-!     call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta, &
-!       SingleArray,det)
-      
-      call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta, &
+        SingleArray,det)
 
       CI_Dipole = CI_Dipole_build(moCoeff(1),wavefunction,dipole,nBasis, & 
-          nAlpha,nBeta,det) 
+          nAlpha,nBeta,det,mo_ERIS) 
 !
 !     Initialize Non_Orthogonal Matrix to be ndet*ndet
 !
@@ -165,7 +165,7 @@ allocate(density(1))
       nB = mqc_matrix_rows(det%Strings%Beta)
       nDet = nA*nB
 
-      Nfi_mat = NO_Overlap(moCoeff(1),wavefunction,det,nBasis,nAlpha,nBeta,nDet)
+      Nfi_mat = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta,nDet)
 
 !     call Nfi_mat%print(iOut,"Nonorthogonal matrix") 
       
