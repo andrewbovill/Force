@@ -51,7 +51,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_matrix)::Nfi_mat
       type(mqc_determinant)::det
       type(mqc_twoERIs)::ERIS,mo_ERIs
-      integer, dimension(1) :: SingleArray = 1
+      integer, dimension(2) :: SingleArray = [0,1]
 !
 !     Format Statements
 !

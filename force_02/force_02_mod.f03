@@ -66,7 +66,7 @@
       type(mqc_twoERIs),intent(in)::mo_ERIs
       type(mqc_vector)::subs
       integer(kind=int64)::iPrint=4
-      integer, dimension(1) :: SingleArray = 1
+      integer, dimension(2) :: SingleArray = [0,1]
 
       mqcnBasis = nBasis
 !
