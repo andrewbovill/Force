@@ -30,7 +30,7 @@ INCLUDE 'force_02_mod.f03'
       implicit none
       integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta, &   
-        nOcc,nVirt,nMOs,nOV,nA,nB,nDet
+        nOcc,nVirt,nMOs,nOV,nA,nB
       integer(kind=int64)::i,j
 !     Andrew integer arrays for singles and doubles
       real(kind=real64)::timeStart,timeEnd,test
@@ -43,7 +43,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap,check_est
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
@@ -51,7 +51,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_matrix)::Nfi_mat
       type(mqc_determinant)::det
       type(mqc_twoERIs)::ERIS,mo_ERIs
-      integer, dimension(2) :: SingleArray = [0,1]
+      integer, dimension(1) :: SingleArray = [1]
 !
 !     Format Statements
 !
@@ -156,16 +156,13 @@ allocate(density(1))
         SingleArray,det)
 
       CI_Dipole = CI_Dipole_build(moCoeff(1),wavefunction,dipole,nBasis, & 
-          nAlpha,nBeta,det,mo_ERIS) 
+          nAlpha,nBeta,det) 
 !
 !     Initialize Non_Orthogonal Matrix to be ndet*ndet
 !
 
-      nA = mqc_matrix_rows(det%Strings%Alpha)
-      nB = mqc_matrix_rows(det%Strings%Beta)
-      nDet = nA*nB
-
-      Nfi_mat = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta,nDet)
+      check_est = det_to_swap(det,1,1,moCoeff(1),nbasis) 
+      !Nfi_mat = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta)
 
 !     call Nfi_mat%print(iOut,"Nonorthogonal matrix") 
       
@@ -176,7 +173,7 @@ allocate(density(1))
 
       call tdm_ci_au%init(3)
       do j = 1,3
-         call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
+!        call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
 
       call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')

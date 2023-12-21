@@ -41,16 +41,15 @@
       do i = 1,3
               dipoleEV(i)=matmul(matmul(dagger(bra),dipole(i)),ket)
       enddo
-      write(*,*) "Andrew checking dipole EV(1)"
 
       call dipoleEV(1)%print(iOut,'dipolev1')
       
-      write(*,*) "Andrew checking dipole EV(1) done"
+      !rite(*,*) "Andrew checking dipole EV(1) done"
 
       end function dipole_expectation_value
 
       function CI_Dipole_build(moCoeff,wavefunction,dipole,nBasis, & 
-          nElectronsAlpha,nElectronsBeta,det,mo_ERIS) result(CI_Dipole)
+          nElectronsAlpha,nElectronsBeta,det) result(CI_Dipole)
 
       implicit none
 
@@ -62,14 +61,12 @@
       type(mqc_scf_integral),dimension(3)::dipoleMO
       integer(kind=int64)::i,j
       type(mqc_determinant),intent(in)::det
-      type(mqc_scalar)::mqcnBasis
-      type(mqc_twoERIs),intent(in)::mo_ERIs
-      type(mqc_vector)::subs
       integer(kind=int64)::iPrint=4
       integer, dimension(2) :: SingleArray = [0,1]
+      type(mqc_scalar)::mqc_nBasis
 
-      mqcnBasis = nBasis
-!
+      mqc_nBasis= nBasis
+
 !     Call trci_det_strings to get determinant, note "iPrint=4" prints alpha
 !     strings as binary representation
 
@@ -80,7 +77,7 @@
 !
       j = 0
       j = det%nDets
-      write(*,*) j
+      write(*,*) "Number of dets", det%nDets
 !
 !     Print out Alpha and beta strings to debug against, note both are matrices
 !
@@ -93,7 +90,7 @@
       dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
 
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,iPrint,mqcnBasis,det,&
+         call mqc_build_ci_hamiltonian(iOut,iPrint,mqc_nBasis,det,&
               dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Subs=SingleArray)
          call CI_Dipole(i)%print(iOut,"CI Dipole")
       enddo
@@ -115,10 +112,12 @@
           Beta_String_2,A_init_array,A_exc_array,B_init_array,B_exc_array
       excitation = coeff
 
+      !write(*,*) "Andrew in det_to_swap"
       nA = mqc_matrix_rows(det%Strings%Alpha)
       nB = mqc_matrix_rows(det%Strings%Beta)
 
       NBit_Ints = (NBasis/Bit_Size(0))+1
+      write(*,*) "nBit_ints", NBit_ints
       Allocate(Alpha_String_1(NBit_Ints),Alpha_String_2(NBit_Ints),Beta_String_1(NBit_Ints),Beta_String_2(NBit_Ints))
       Alpha_String_1 = det%Strings%Alpha%vat([A],[1,NBit_Ints])
       Alpha_String_2 = det%Strings%Alpha%vat([nA],[1,NBit_Ints])
@@ -165,6 +164,7 @@
       allocate(character(len=nbasis)::char_det_string)
       write(char_det_string,'(B0)') det_string
 
+!     write(*,*) "Andrew in build_swap_list"
       n=1
       allocate(integer::array(len(trim(char_det_string))))
 
@@ -178,7 +178,7 @@
        endif
        n=n+1
       enddo
-      write(*,*) "Andrew build_swap_list complete"
+!     write(*,*) "Andrew build_swap_list complete"
       end subroutine build_swap_list
 
       subroutine build_swap_list_final(det_string_initial,det_string_final,array_initial,array_final,nbasis)
@@ -190,6 +190,8 @@
       integer(kind=int64)::det_string_initial,det_string_final,n,j,i,nbasis
       character(:),allocatable::char_det_string_initial,char_det_string_final
       integer,allocatable,dimension(:)::array_initial,array_final,temp_i,temp_f
+
+!     write(*,*) "Andrew in build_swap_list_final"
 
       call build_swap_list(det_string_initial,array_initial,nbasis)
       call build_swap_list(det_string_final,array_final,nbasis)
@@ -218,7 +220,7 @@
 
       end subroutine build_swap_list_final
 
-      function NO_Overlap(bra,bra_coeff,det,nBasis,nAlpha,nBeta,nDet) result(Nfi_mat)
+      function NO_Overlap(bra,bra_coeff,det,nBasis,nAlpha,nBeta) result(Nfi_mat)
 
       implicit none
 
@@ -227,33 +229,46 @@
       real(kind=real64)::tempnij
       type(mqc_scalar)::Nij
       type(mqc_determinant),intent(in)::det
-      type(mqc_scf_integral)::bra_coeff,ket_coeff,single,overlap,left,right
-      integer(kind=int64)::a,b,i,j,nOcc,nA,nB,LA,LB,RA,RB,L,R       
-      integer(Kind=int64),intent(in)::nBasis,nAlpha,nBeta,nDet
+      type(mqc_scf_integral)::bra_coeff,ket_coeff,overlap,left,right
+      integer(kind=int64)::a,b,i,j,nOcc,nA,nB,LA,LB,RA,RB,L,R,nDet
+      integer(Kind=int64),intent(in)::nBasis,nAlpha,nBeta
 
       overlap = bra%overlap_matrix
 
       write(*,*) nBasis,"nBasis"
       call overlap%print(iOut,"Overlap")
+
+      nA = mqc_matrix_rows(det%Strings%Alpha)
+      nB = mqc_matrix_rows(det%Strings%Beta)
+      nDet = nA*nB
+      
+      write(*,*) "nA", nA
+      write(*,*) "nB", nB
+      write(*,*) "Ndet", nDet
       
       call Nfi_mat%init(nDet,nDet) 
 !
 !     Dec 18, 2023 Everything up to this point is working... problem is in loop
 !     below
 !
+
       do LA = 1,nA
        do LB = 1,nB
         do RA = 1,nA
          do RB = 1,nB
+             !write(*,*) "Andrew writing out RB", RB
+             !write(*,*) "Andrew before adding"
              L = 1 + (LB-1)*nA + (LA-1)
              R = 1 + (RB-1)*nA + (RA-1)
+             !write(*,*) "L is equal to: ", L
+             !write(*,*) "Andrew in loop within NO_Overlap"
              left = det_to_swap(det,LA,LB,bra_coeff,nbasis)
              right = bra_coeff
+!            right = det_to_swap(det,RA,RB,ket_coeff,nbasis)
              bra_occ=mqc_integral_output_block(left%orbitals('occupied',[nAlpha],[nBeta]),'full')
              ket_occ=mqc_integral_output_block(right%orbitals('occupied',[nAlpha],[nBeta]),'full')
              Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
              Nij = Mij%det()
-             Nij = 1.0
              call Nfi_mat%put(Nij,L,R,'element')
              
              enddo
@@ -261,7 +276,6 @@
        enddo
       enddo
 
-      call Nfi_mat%print(iOut, "Nonorthogonal Overlap")
       end function NO_Overlap
 
 
