@@ -1,5 +1,5 @@
 %chk=h2o_dipole.chk
-#P 6-31G blyp geom=modela output=mat
+#p uhf geom=modela output=(mat,AO2ElectronIntegrals) int=noraff 
 
 h2o dipole check
 
