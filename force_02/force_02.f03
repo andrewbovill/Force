@@ -31,27 +31,25 @@ INCLUDE 'force_02_mod.f03'
       integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta, &   
         nOcc,nVirt,nMOs,nOV,nA,nB
-      integer(kind=int64)::i,j
+      integer(kind=int64)::i,j,iDetRef
 !     Andrew integer arrays for singles and doubles
       real(kind=real64)::timeStart,timeEnd,test
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025294
       character(len=512)::matrixFilename
-!     Andrew dipole vectors in atomic units
-      type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au
-!     Andrew dipole vectors in Debyes
-      type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db
+      type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
+      type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap,check_est
+      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
-      type(mqc_matrix)::Nfi_mat
+      type(mqc_vector),dimension(:):: Nfi_vec
       type(mqc_determinant)::det
-      type(mqc_twoERIs)::ERIS,mo_ERIs
       integer, dimension(1) :: SingleArray = [1]
+      integer, dimension(:),allocatable :: iDetSingles
 !
 !     Format Statements
 !
@@ -62,8 +60,9 @@ INCLUDE 'force_02_mod.f03'
              1x,'nElec=',I4,6x,'nElAlpha=',I4,6x,'nElBeta  =',I4)
  1030 Format(1x,'nMos      =',I4,6x,'nOcc    =',I4,6x,'nVirt    =',I4,/,  &
              1x,'nOv       =',I4)
- 1040 format(1x,a,': ',b31)
- 1050 format(1x,a,1x,i5,': ',b31)
+ 2000 format(1x,a,': ',b31)
+ 2100 format(1x,a,1x,i5,': ',b31)
+ 2200 format(1x,a,1x,i5,': ',I5)
  5000 Format(1x,'Time (',A,'): ',f8.1,' s.')
  8999 Format(/,1x,'END OF program force_02.')
 !
@@ -106,7 +105,6 @@ allocate(density(1))
       call Gmatrixfile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GmatrixFile%getESTObj('density',est_integral=density(1))
       call GmatrixFile%getESTObj('wavefunction',wavefunction)
-      call GmatrixFile%get2ERIs('regular',eris)
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
       call GmatrixFile%getMolData(molData)
@@ -116,10 +114,6 @@ allocate(density(1))
       nuclear_dipole_au = matmul(transpose(molData%Nuclear_Charges),& 
         transpose(molData%Cartesian_Coordinates))
       call nuclear_dipole_au%print(iOut,"Nuclear Dipole in Atomic units") 
-
-      call dipole(1)%print(iOut," Dipole in Atomic units") 
-      call dipole(2)%print(iOut," Dipole in Atomic units") 
-      call dipole(3)%print(iOut," Dipole in Atomic units") 
 !
 !     Initialize total dipole moment vector and compute.
 !
@@ -147,36 +141,43 @@ allocate(density(1))
       nOcc = nAlpha
       nVirt = nMOs-nOcc
       nOV = nOcc*nVirt
+!
+!     Call 'Single Det' to build integer values for all single subs
+!
+      allocate(iDetSingles(nOV))
+      call SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+      write(iOut,2000) 'Reference', iDetRef
+      do i = 1,nOv
+        write(iOut,2100) 'Singles',i,iDetSingles(i)
+        write(iOut,2200) 'Singles',i,iDetSingles(i)
+      end do
 
       write(iOut,1030) nMos,nOcc,nVirt,nOV
 !
 !     Calling CI_Dipole_build routine to build out mqc_matrix object
 !       
-      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta, &
+      call trci_dets_string(iOut,1,nBasis,nAlpha,nBeta, &
         SingleArray,det)
 
       CI_Dipole = CI_Dipole_build(moCoeff(1),wavefunction,dipole,nBasis, & 
           nAlpha,nBeta,det) 
 !
-!     Initialize Non_Orthogonal Matrix to be ndet*ndet
-!
+!     Initialize Non_Orthogonal Vector to be nOV long
+!     Vector of overlap values between groundstate and all single determinants
 
-      check_est = det_to_swap(det,1,1,moCoeff(1),nbasis) 
-      !Nfi_mat = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta)
+      call Nfi_vec%init(nOV) 
+!     Nfi_vec = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta)
 
 !     call Nfi_mat%print(iOut,"Nonorthogonal matrix") 
-      
-!     call Nfi_mat%print(iOut, "Nonorthogonal Overlap")
 !
 !     Turn density into mqc_matrix type object to contract with CI_dipole
 !
-
-      call tdm_ci_au%init(3)
-      do j = 1,3
+!     call tdm_ci_au%init(3)
+      do j = 1,nOV
 !        call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
 
-      call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
+!     call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
 
   999 Continue
       call cpu_time(timeEnd)
