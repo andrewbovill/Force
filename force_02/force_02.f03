@@ -46,7 +46,7 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
-      type(mqc_vector),dimension(:):: Nfi_vec
+      type(mqc_vector):: Nfi_vec
       type(mqc_determinant)::det
       integer, dimension(1) :: SingleArray = [1]
       integer, dimension(:),allocatable :: iDetSingles
@@ -166,9 +166,11 @@ allocate(density(1))
 !     Vector of overlap values between groundstate and all single determinants
 
       call Nfi_vec%init(nOV) 
-!     Nfi_vec = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta)
 
-!     call Nfi_mat%print(iOut,"Nonorthogonal matrix") 
+      Nfi_vec = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta, &
+        nOV,iDetSingles)
+
+      call Nfi_vec%print(iOut,"Nonorthogonal vector") 
 !
 !     Turn density into mqc_matrix type object to contract with CI_dipole
 !

@@ -105,10 +105,35 @@
 
       end subroutine SingleDet
 
-     !function NO_Overlap() result(Nfi_mat)
-     !
-     !implicit none
+     function NO_Overlap(wavefunction,gs_density,det,nBasis,nAlpha,nBeta,nOV,iDetSingles) result(Nfi_vec)
+     
+     implicit none
+     type(mqc_pscf_wavefunction)::wavefunction
+     type(mqc_vector)::Nfi_vec
+     type(mqc_matrix)::Mij,bra_occ,ket_occ
+     type(mqc_scf_integral)::gs_density,ci_density,overlap
+     type(mqc_determinant)::det
+     integer(kind=int64)::nBasis,nAlpha,nBeta,nOV,Nij,occ_swap,virt_swap,i
+     integer(kind=int64),dimension(nOV)::iDetSingles
 
-     !end function NO_Overlap
+     overlap = wavefunction%overlap_matrix
+     call Nfi_vec%init(nOV+1)
+
+     occ_swap = 1
+     virt_swap = 6
+
+     do i = 1, nOV
+        ! call det_to_swap(iDetSingles(i),virt_swap,occ_swap)
+      ci_density = gs_density%swap([occ_swap,virt_swap])
+        bra_occ=mqc_integral_output_block(gs_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
+        ket_occ=mqc_integral_output_block(ci_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
+        !call bra_occ%print(iOut,"bra_occ After")
+        Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+        Nij = abs(Mij%det())
+        call Nfi_vec%put(Nij,i)
+      end do
+     
+
+      end function NO_Overlap
 
       end module force_02_mod
