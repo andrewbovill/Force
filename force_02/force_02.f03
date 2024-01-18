@@ -165,7 +165,6 @@ allocate(density(1))
 !     Initialize Non_Orthogonal Vector to be nOV long
 !     Vector of overlap values between groundstate and all single determinants
 
-      call Nfi_vec%init(nOV) 
 
       Nfi_vec = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta, &
         nOV,iDetSingles)
@@ -174,9 +173,11 @@ allocate(density(1))
 !
 !     Turn density into mqc_matrix type object to contract with CI_dipole
 !
-!     call tdm_ci_au%init(3)
+
+      
+      call tdm_ci_au%init(3)
       do j = 1,nOV
-!        call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
+         call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
       enddo
 
 !     call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')

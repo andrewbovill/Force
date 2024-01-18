@@ -105,34 +105,78 @@
 
       end subroutine SingleDet
 
-     function NO_Overlap(wavefunction,gs_density,det,nBasis,nAlpha,nBeta,nOV,iDetSingles) result(Nfi_vec)
+      subroutine det_to_swap(iDetSingle,virt,occ,nElec,nBasis)
+!
+!     This routine reading from the determinant string list returns the orbitals
+!     to swap in the "swap" subroutine from the mqc_est_obj wavefunction
+!
+
+      implicit none
+      integer(kind=int64),intent(in) :: iDetSingle,nElec,nBasis
+      integer(kind=int64) :: iDetRef,iDetSwap,i,virt,occ
+      logical::bit_test
+
+      iDetRef = 0
+      do i = 0,nElec-1
+        iDetRef = IBSet(iDetRef,i)
+      endDo
+!
+!     IDet swap turns on 1 where differences are located and 0
+!     where the reference and single determinant are the same
+!
+      iDetSwap = XOR(iDetRef,iDetSingle)
+!
+!     Now taking the xor and obtaining '100001' I need a routine to go through
+!     the bit and count up the swaps
+!
+      bit_test = .false.
+      do i = 0,nElec-1  
+        bit_test = BTEST(iDetSwap,i)
+        if (bit_test.eqv. .true.) then
+          occ = i+1
+        end if
+        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      end do
+
+      do i = nElec,nBasis-1
+        bit_test = BTEST(iDetSwap,i)
+        if (bit_test .eqv. .true.) then
+          virt = i+1
+        end if
+      end do
+
+      end subroutine det_to_swap
+
+      function NO_Overlap(wavefunction,gs_density,det,nBasis,nAlpha,nBeta,nOV,iDetSingles) result(Nfi_vec)
      
-     implicit none
-     type(mqc_pscf_wavefunction)::wavefunction
-     type(mqc_vector)::Nfi_vec
-     type(mqc_matrix)::Mij,bra_occ,ket_occ
-     type(mqc_scf_integral)::gs_density,ci_density,overlap
-     type(mqc_determinant)::det
-     integer(kind=int64)::nBasis,nAlpha,nBeta,nOV,Nij,occ_swap,virt_swap,i
-     integer(kind=int64),dimension(nOV)::iDetSingles
+      implicit none
+      type(mqc_pscf_wavefunction)::wavefunction
+      type(mqc_vector)::Nfi_vec
+      type(mqc_matrix)::Mij,bra_occ,ket_occ
+      type(mqc_scf_integral)::gs_density,ci_density,overlap
+      type(mqc_determinant)::det
+      integer(kind=int64)::nBasis,nAlpha,nBeta,nOV,Nij,occ_swap,virt_swap,i
+      integer(kind=int64),dimension(nOV)::iDetSingles
 
-     overlap = wavefunction%overlap_matrix
-     call Nfi_vec%init(nOV+1)
+      overlap = wavefunction%overlap_matrix
+      call Nfi_vec%init(nOV+1)
 
-     occ_swap = 1
-     virt_swap = 6
+      bra_occ=mqc_integral_output_block(gs_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),bra_occ)
+      Nij = abs(Mij%det())
+      call Nfi_vec%put(Nij,1)
 
-     do i = 1, nOV
-        ! call det_to_swap(iDetSingles(i),virt_swap,occ_swap)
-      ci_density = gs_density%swap([occ_swap,virt_swap])
-        bra_occ=mqc_integral_output_block(gs_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      do i = 1, nOV
+        call det_to_swap(iDetSingles(i),virt_swap,occ_swap,nAlpha,nBasis)
+        ci_density = gs_density%swap([occ_swap,virt_swap])
         ket_occ=mqc_integral_output_block(ci_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
-        !call bra_occ%print(iOut,"bra_occ After")
+        call ket_occ%print(iOut,"ket_occ After")
         Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
         Nij = abs(Mij%det())
-        call Nfi_vec%put(Nij,i)
+        call Nfi_vec%put(Nij,(i+1))
       end do
-     
+
+      call bra_occ%print(iOut,"bra_occ ")
 
       end function NO_Overlap
 
