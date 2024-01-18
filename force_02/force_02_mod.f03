@@ -170,13 +170,10 @@
         call det_to_swap(iDetSingles(i),virt_swap,occ_swap,nAlpha,nBasis)
         ci_density = gs_density%swap([occ_swap,virt_swap])
         ket_occ=mqc_integral_output_block(ci_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
-        call ket_occ%print(iOut,"ket_occ After")
         Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
         Nij = abs(Mij%det())
         call Nfi_vec%put(Nij,(i+1))
       end do
-
-      call bra_occ%print(iOut,"bra_occ ")
 
       end function NO_Overlap
 

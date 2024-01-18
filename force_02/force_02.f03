@@ -33,7 +33,7 @@ INCLUDE 'force_02_mod.f03'
         nOcc,nVirt,nMOs,nOV,nA,nB
       integer(kind=int64)::i,j,iDetRef
 !     Andrew integer arrays for singles and doubles
-      real(kind=real64)::timeStart,timeEnd,test
+      real(kind=real64)::timeStart,timeEnd,test, temp_scalar
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025294
       character(len=512)::matrixFilename
@@ -43,10 +43,11 @@ INCLUDE 'force_02_mod.f03'
       type(mqc_molecule_data)::molData
       type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap
       type(mqc_pscf_wavefunction)::wavefunction
-      type(mqc_scf_integral),dimension(3)::dipole,scf_CI_Dipole
+      type(mqc_scf_integral),dimension(3)::dipole
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
-      type(mqc_vector):: Nfi_vec
+      type(mqc_matrix)::Nfi_mat
+      type(mqc_vector)::Nfi_vec,CI_Dipole_Vec
       type(mqc_determinant)::det
       integer, dimension(1) :: SingleArray = [1]
       integer, dimension(:),allocatable :: iDetSingles
@@ -165,22 +166,33 @@ allocate(density(1))
 !     Initialize Non_Orthogonal Vector to be nOV long
 !     Vector of overlap values between groundstate and all single determinants
 
-
       Nfi_vec = NO_Overlap(wavefunction,moCoeff(1),det,nBasis,nAlpha,nBeta, &
         nOV,iDetSingles)
 
       call Nfi_vec%print(iOut,"Nonorthogonal vector") 
 !
 !     Turn density into mqc_matrix type object to contract with CI_dipole
+!     This only works if the job is unrestricted
 !
-
-      
+     
       call tdm_ci_au%init(3)
-      do j = 1,nOV
-         call tdm_ci_au%put((-1)*contraction(Nfi_mat,CI_Dipole(j))+nuclear_dipole_au%at(j),j)
+      do i = 1,3
+        temp_scalar = 0.0
+        do j = 1,(nOv+1)      
+          temp_scalar = temp_scalar + CI_Dipole(i)%at(1,j)*Nfi_vec%at(j) 
+        end do
+        write(*,*) "temp_scalar after",temp_scalar
+        call tdm_ci_au%put((-1)*temp_scalar,i)
       enddo
 
-!     call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
+      call tdm_ci_au%print(iOut,'CI Total Dipole Moment in atomic units')
+
+      call tdm_ci_db%init(3)
+      do j = 1,3
+         call tdm_ci_db%put(tdm_au%at(j)*scale_debye,j)
+      enddo
+
+      call tdm_ci_db%print(iOut,'Total Dipole Moment in Debyes')
 
   999 Continue
       call cpu_time(timeEnd)
