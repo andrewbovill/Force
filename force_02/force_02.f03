@@ -181,7 +181,6 @@ allocate(density(1))
         do j = 1,(nOv+1)      
           temp_scalar = temp_scalar + CI_Dipole(i)%at(1,j)*Nfi_vec%at(j) 
         end do
-        write(*,*) "temp_scalar after",temp_scalar
         call tdm_ci_au%put((-1)*temp_scalar,i)
       enddo
 
