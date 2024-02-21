@@ -1,0 +1,14 @@
+%oldchk=h2o_dipole_gs.chk
+%chk=h2o_dipole_ex.chk
+%subst l502 /home/abovill/gauss-PIMOM/PIMOM_GAUSSJ15 
+#P ublyp IOp(5/189=2) guess=(alter,read) chkbasis geom=check pop=orbitals=20 output=(mat,AO2Electronintegrals)
+
+test
+
+0 1
+
+5 6
+
+
+h2o_dipole_ex.mat
+

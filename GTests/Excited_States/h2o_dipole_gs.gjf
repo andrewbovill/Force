@@ -1,0 +1,10 @@
+%chk=h2o_dipole_gs.chk
+#P ublyp 6-31G pop=orbitals=20 opt output=(mat,AO2Electronintegrals) guess=save geom=modela
+
+h2o
+
+0 1
+o h h
+
+h2o_dipole_gs.mat
+

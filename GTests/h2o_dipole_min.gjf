@@ -1,0 +1,10 @@
+%chk=h2o_dipole_min.chk
+#P sto-3g blyp geom=modela output=mat
+
+h2o dipole_min check
+
+0 1
+o h h
+
+h2o_dipole_min.mat
+

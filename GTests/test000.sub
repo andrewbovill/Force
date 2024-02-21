@@ -1,0 +1,20 @@
+#! /bin/csh
+#$ -S /bin/csh
+#$ -q allnodes.q
+#$ -cwd
+#$ -N Job-test000.gjf
+#$ -j y
+#$ -o test000.gjf.qlog
+#$ -l mem_free=32G
+#$ -pe smp 12
+#
+# Set up the Gaussian environment and prevent core files.
+module load gaussian/gdv
+limit coredumpsize 0
+#
+# Set the Gaussian scratch directory to the job-specific SCRATCH directory.
+set MY_SCRATCH="$TMPDIR"
+setenv GAUSS_SCRDIR $MY_SCRATCH
+#
+# Run Gaussian...
+pinconning_node_print -d > test000.log && gdv -m=32GB -p=12 < test000.gjf >>& test000.log && sed -i 's/Dipole orientation:/Dipole oientation:/' test000.log

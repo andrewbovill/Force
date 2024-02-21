@@ -1,0 +1,1254 @@
+************************************************************
+This is node12.cluster of cluster Pinconning.
+Date: Wed Feb 21 13:47:41 PST 2024
+************************************************************
+ Set GAUSS_MDEF to "32GB".
+ Set GAUSS_PDEF to "12".
+ Entering Gaussian System, Link 0=gdv
+ Initial command:
+ /opt/gaussian/gdv-20240213-j26+/gdv/l1.exe "/tmp/898424.1.allnodes.q/Gau-19187.inp" -scrdir="/tmp/898424.1.allnodes.q/"
+ Default is to use a total of  12 processors:
+                               12 via shared-memory
+                                1 via Linda
+ Entering Link 1 = /opt/gaussian/gdv-20240213-j26+/gdv/l1.exe PID=     19188.
+  
+ Copyright (c) 1988-2023, Gaussian, Inc.  All Rights Reserved.
+  
+ This is the private, development version of
+ the Gaussian(R) DV system of programs. It is based on
+ the Gaussian(R) 16 system (copyright 2016, Gaussian, Inc.),
+ the Gaussian(R) 09 system (copyright 2009, Gaussian, Inc.),
+ the Gaussian(R) 03 system (copyright 2003, Gaussian, Inc.),
+ the Gaussian(R) 98 system (copyright 1998, Gaussian, Inc.),
+ the Gaussian(R) 94 system (copyright 1995, Gaussian, Inc.),
+ the Gaussian 92(TM) system (copyright 1992, Gaussian, Inc.),
+ the Gaussian 90(TM) system (copyright 1990, Gaussian, Inc.),
+ the Gaussian 88(TM) system (copyright 1988, Gaussian, Inc.),
+ the Gaussian 86(TM) system (copyright 1986, Carnegie Mellon
+ University), and the Gaussian 82(TM) system (copyright 1983,
+ Carnegie Mellon University). Gaussian is a federally registered
+ trademark of Gaussian, Inc.
+  
+ This software contains proprietary and confidential information,
+ including trade secrets, belonging to Gaussian, Inc.
+  
+ This software is provided under written license and may be
+ used, copied, transmitted, or stored only in accord with that
+ written license.
+  
+ The following legend is applicable only to US Government
+ contracts under FAR:
+  
+                    RESTRICTED RIGHTS LEGEND
+  
+ Use, reproduction and disclosure by the US Government is
+ subject to restrictions as set forth in subparagraphs (a)
+ and (c) of the Commercial Computer Software - Restricted
+ Rights clause in FAR 52.227-19.
+  
+ Gaussian, Inc.
+ 340 Quinnipiac St., Bldg. 40, Wallingford CT 06492
+  
+  
+ ---------------------------------------------------------------
+ Warning -- This program may not be used in any manner that
+ competes with the business of Gaussian, Inc. or will provide
+ assistance to any competitor of Gaussian, Inc.  The licensee
+ of this program is prohibited from giving any competitor of
+ Gaussian, Inc. access to this program.  By using this program,
+ the user acknowledges that Gaussian, Inc. is engaged in the
+ business of creating and licensing software in the field of
+ computational chemistry and represents and warrants to the
+ licensee that it is not a competitor of Gaussian, Inc. and that
+ it will not use this program in any manner prohibited above.
+ ---------------------------------------------------------------
+  
+
+ Cite this work as:
+ Gaussian Development Version, Revision J.26+,
+ M. J. Frisch, G. W. Trucks, G. Scalmani, J. R. Cheeseman, X. Li, 
+ J. Bloino, B. G. Janesko, A. V. Marenich, J. Zheng, F. Lipparini, 
+ A. Jenkins, A. Liu, H. Liu, H. B. Schlegel, G. E. Scuseria, 
+ M. A. Robb, V. Barone, G. A. Petersson, H. Nakatsuji, B. Mennucci, 
+ C. Adamo, N. Rega, M. Caricato, H. P. Hratchian, J. V. Ortiz, 
+ A. F. Izmaylov, H. Hu, C. Liao, J. L. Sonnenberg, D. Williams-Young, 
+ F. Ding, R. Gomperts, F. Egidi, J. Goings, B. Peng, A. Petrone, 
+ T. Henderson, D. Ranasinghe, V. G. Zakrzewski, J. Gao, G. Zheng, 
+ W. Liang, M. Hada, M. Ehara, K. Toyota, R. Fukuda, J. Hasegawa, 
+ M. Ishida, T. Nakajima, Y. Honda, O. Kitao, H. Nakai, T. Vreven, 
+ K. Throssell, J. A. Montgomery, Jr., J. E. Peralta, F. Ogliaro, 
+ M. J. Bearpark, J. J. Heyd, E. N. Brothers, K. N. Kudin, 
+ V. N. Staroverov, T. A. Keith, R. Kobayashi, J. Normand, 
+ K. Raghavachari, A. P. Rendell, J. C. Burant, S. S. Iyengar, 
+ M. Cossi, J. M. Millam, M. Klene, R. Cammi, R. L. Martin, O. Farkas, 
+ J. B. Foresman, and D. J. Fox, Gaussian, Inc., Wallingford CT, 2023.
+ 
+ *******************************************
+ Gaussian DV:  ES64L-GDVRevJ.26+  9-Sep-2023
+                 21-Feb-2024 
+ *******************************************
+ %oldchk=h2o_dipole_gs.chk
+ %chk=h2o_dipole_ex.chk
+ %subst l502 /home/abovill/gauss-PIMOM/PIMOM_GAUSSJ15
+ Copying data from "h2o_dipole_gs.chk" to current chk file "h2o_dipole_ex.chk"
+ IOpt=  2 FromEx=T IUOpen= 4 IOptOp= 5 NList=   0 IFRang= 0 IUIn= 4 IUOut= 2.
+ ----------------------------------------------------------------------
+ #P ublyp IOp(5/189=2) guess=(alter,read) chkbasis geom=check pop=orbit
+ als=20 output=(mat,AO2Electronintegrals)
+ ----------------------------------------------------------------------
+ 1/29=2,38=1,172=1/1;
+ 2/12=2/2;
+ 3/5=7,6=2,11=2,14=-4,25=20,28=1,30=1,67=1,74=4002,116=2/1,2,3,8,20;
+ 4/5=1,8=1/1;
+ 5/5=1,38=6,189=2/2;
+ 6/7=2,8=2,9=2,10=2,28=1,96=20/1;
+ 99/5=1,6=100000,9=1/99;
+ Leave Link    1 at Wed Feb 21 13:47:41 2024, MaxMem=  4294967296 cpu:               0.1 elap:               0.2
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l101.exe)
+ ----
+ test
+ ----
+ Structure from the checkpoint file:  "h2o_dipole_ex.chk"
+ Charge =     0 Multiplicity =     1
+ Redundant internal coordinates found in file.  (old form).
+ O,0,-0.0199799569,0.,-0.014127963
+ H,0,0.0045162424,0.,0.9748050133
+ H,0,0.9205603944,0.,-0.3206770502
+ Recover connectivity data from disk.
+ ITRead=  0  0  0
+ MicOpt= -1 -1 -1
+                           ----------------------------
+                           !    Current Parameters    !
+                           ! (Angstroms and Degrees)  !
+ --------------------------                            --------------------------
+ ! Name  Definition              Value                                          !
+ --------------------------------------------------------------------------------
+ ! R1    R(1,2)                  0.9892                                         !
+ ! R2    R(1,3)                  0.9892                                         !
+ ! A1    A(2,1,3)              106.6333                                         !
+ --------------------------------------------------------------------------------
+ NAtoms=      3 NQM=        3 NQMF=       0 NMMI=      0 NMMIF=      0
+                NMic=       0 NMicF=      0.
+                    Isotopes and Nuclear Properties:
+ (Nuclear quadrupole moments (NQMom) in fm**2, nuclear magnetic moments (NMagM)
+  in nuclear magnetons)
+
+  Atom         1           2           3
+ IAtWgt=          16           1           1
+ AtmWgt=  15.9949146   1.0078250   1.0078250
+ NucSpn=           0           1           1
+ AtZEff=   5.6000000   1.0000000   1.0000000
+ NQMom=    0.0000000   0.0000000   0.0000000
+ NMagM=    0.0000000   2.7928460   2.7928460
+ AtZNuc=   8.0000000   1.0000000   1.0000000
+ Leave Link  101 at Wed Feb 21 13:47:42 2024, MaxMem=  4294967296 cpu:               0.8 elap:               0.6
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l202.exe)
+                          Input orientation:                          
+ ---------------------------------------------------------------------
+ Center     Atomic      Atomic             Coordinates (Angstroms)
+ Number     Number       Type             X           Y           Z
+ ---------------------------------------------------------------------
+      1          8           0       -0.019980    0.000000   -0.014128
+      2          1           0        0.004516   -0.000000    0.974805
+      3          1           0        0.920560    0.000000   -0.320677
+ ---------------------------------------------------------------------
+                    Distance matrix (angstroms):
+                    1          2          3
+     1  O    0.000000
+     2  H    0.989236   0.000000
+     3  H    0.989236   1.586635   0.000000
+ Stoichiometry    H2O
+ Framework group  C2V[C2(O),SGV(H2)]
+ Deg. of freedom     2
+ Full point group                 C2V     NOp   4
+ RotChk:  IX=0 Diff= 5.60D-16
+ Largest Abelian subgroup         C2V     NOp   4
+ Largest concise Abelian subgroup C2      NOp   2
+                         Standard orientation:                         
+ ---------------------------------------------------------------------
+ Center     Atomic      Atomic             Coordinates (Angstroms)
+ Number     Number       Type             X           Y           Z
+ ---------------------------------------------------------------------
+      1          8           0       -0.000000    0.000000    0.118192
+      2          1           0       -0.000000    0.793318   -0.472769
+      3          1           0       -0.000000   -0.793318   -0.472769
+ ---------------------------------------------------------------------
+ Rotational constants (GHZ):         808.4044053         398.3895925         266.8723097
+ Leave Link  202 at Wed Feb 21 13:47:42 2024, MaxMem=  4294967296 cpu:               0.4 elap:               0.2
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l301.exe)
+ Basis read from chk: "h2o_dipole_ex.chk" (6D, 7F)
+ No pseudopotential information found on chk file.
+ There are     7 symmetry adapted cartesian basis functions of A1  symmetry.
+ There are     0 symmetry adapted cartesian basis functions of A2  symmetry.
+ There are     2 symmetry adapted cartesian basis functions of B1  symmetry.
+ There are     4 symmetry adapted cartesian basis functions of B2  symmetry.
+ There are     7 symmetry adapted basis functions of A1  symmetry.
+ There are     0 symmetry adapted basis functions of A2  symmetry.
+ There are     2 symmetry adapted basis functions of B1  symmetry.
+ There are     4 symmetry adapted basis functions of B2  symmetry.
+    13 basis functions,    30 primitive gaussians,    13 cartesian basis functions
+     5 alpha electrons        5 beta electrons
+       nuclear repulsion energy         8.8924830041 Hartrees.
+ IExCor=      4002 DFT=T Ex=B Corr=LYP N6=None ScaHFX=  0.000000
+ ScaDFX=  1.000000  1.000000  1.000000  1.000000  1.000000  0.000000
+ ScaDFX=  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
+ IRadAn=      5 IRanWt=     -1 IRanGd=            0 ICorTp=0 IEmpDi=  4
+ NAtoms=    3 NActive=    3 NUniq=    2 SFac= 2.25D+00 NAtFMM=   60 NAOKFM=F Big=F
+ Integral buffers will be    131072 words long.
+ Raffenetti 2 integral format.
+ Two-electron integral symmetry is turned on.
+ No density basis found on file 200724.
+ Leave Link  301 at Wed Feb 21 13:47:42 2024, MaxMem=  4294967296 cpu:               0.2 elap:               0.2
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l302.exe)
+ NPDir=0 NMtPBC=     1 NCelOv=     1 NCel=       1 NClECP=     1 NCelD=      1
+         NCelK=      1 NCelE2=     1 NClLst=     1 CellRange=     0.0.
+ One-electron integrals computed using PRISM.
+ One-electron integral symmetry used in STVInt
+ NBasis=    13 RedAO= T EigKep=  7.29D-02  NBF=     7     0     2     4
+ NBsUse=    13 1.00D-06 EigRej= -1.00D+00 NBFU=     7     0     2     4
+ Precomputing XC quadrature grid using
+ IXCGrd= 4 IRadAn=           5 IRanWt=          -1 IRanGd=           0 AccXCQ= 0.00D+00.
+ Generated NRdTot=       0 NPtTot=       68316 NUsed=           0 NTot=          64
+ NSgBfM=    13    13    13    13    13 MxSgAt=     3 MxSgA2=     3 SizInc=   0.000
+ NMBTot=      627 MaxBatPerAtom=       82 MaxMicBPerAtom=      210 NBfPt=              766309.
+ Leave Link  302 at Wed Feb 21 13:47:43 2024, MaxMem=  4294967296 cpu:               1.4 elap:               0.4
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l303.exe)
+ DipDrv:  MaxL=1.
+ Leave Link  303 at Wed Feb 21 13:47:43 2024, MaxMem=  4294967296 cpu:               0.3 elap:               0.1
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l308.exe)
+ Leave Link  308 at Wed Feb 21 13:47:43 2024, MaxMem=  4294967296 cpu:               0.3 elap:               0.1
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l320.exe)
+ Enter DskPsm, NBasis=  13 NBas6D=  13 NShell=   7 IDoSP=3 IDer=0 ISMode=2.
+ Generating unsorted Raff 2 combos
+ Use symmetry via Dacre-Elder procedure.
+ NGot=  4294705106 Memory for integrals=  4294697642 for sort=           0.
+ Out2e will use a cutoff of  1.00D-10
+         1282 integrals produced for a total of         1282.
+ Leave Link  320 at Wed Feb 21 13:47:44 2024, MaxMem=  4294967296 cpu:               0.9 elap:               0.3
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l401.exe)
+ Initial guess from the checkpoint file:  "h2o_dipole_ex.chk"
+ B after Tr=     0.000000    0.000000    0.000000
+         Rot=    1.000000   -0.000000    0.000000   -0.000000 Ang=   0.00 deg.
+ AO Guess basis will be translated and rotated to current coordinates.
+ JPrj=2 DoOrth=T DoCkMO=T.
+ Pairs of Alpha orbitals switched:
+    5   6
+ No Beta  orbitals switched.
+ Initial guess orbital symmetries:
+ Alpha Orbitals:
+       Occupied  (A1) (A1) (B2) (A1) (A1)
+       Virtual   (B1) (B2) (B2) (A1) (B1) (A1) (B2) (A1)
+ Beta  Orbitals:
+       Occupied  (A1) (A1) (B2) (A1) (B1)
+       Virtual   (A1) (B2) (B2) (A1) (B1) (A1) (B2) (A1)
+ The electronic state of the initial guess is 1-B1.
+ Initial guess <Sx>=  0.0000 <Sy>=  0.0000 <Sz>=  0.0000 <S**2>=   1.0000 S=  0.6180
+ Leave Link  401 at Wed Feb 21 13:47:44 2024, MaxMem=  4294967296 cpu:               0.4 elap:               0.3
+ (Enter /home/abovill/gauss-PIMOM/PIMOM_GAUSSJ15/l502.exe)
+ momTyp=                        2
+ Nbasis                       13 NBas6D                       13 Nbuse 
+                       13
+ Old NGot               4294967296
+ Imbs9                       13
+ lenms                      169
+ lenmS                      169 Lrdp                     1690
+ Location of the pointer old NGot           48001143312376
+  MOM Memory Allocations:
+ LenMOM=                     1690   iMomSc=                     1691  NGot 
+               4294965606  loc(V(NGot))           48001143298856
+ Two-electron integrals will be kept in memory, NGetB=      262724.
+ Integral symmetry usage will be decided dynamically.
+ UHF open shell SCF:
+ Using DIIS extrapolation, IDIIS=  1040.
+ NGot=  4294965606 LenX=  4294701579 LenY=  4294700697
+ Requested convergence on RMS density matrix=1.00D-08 within 128 cycles.
+ Requested convergence on MAX density matrix=1.00D-06.
+ Requested convergence on             energy=1.00D-06.
+ No special actions if energy rises.
+
+ Generating Initial Overlap 
+
+ Location of the pointer V(1)           48001143301568
+ IC 
+                 1             2             3             4             5 
+      1   0.994920D+00 -0.209205D+00  0.000000D+00 -0.926423D-01 -0.885290D-01
+      2   0.289786D-01  0.464859D+00  0.000000D+00  0.202737D+00  0.166148D+00
+      3   0.000000D+00  0.000000D+00  0.000000D+00  0.000000D+00  0.000000D+00
+      4   0.000000D+00  0.000000D+00  0.513558D+00  0.000000D+00  0.000000D+00
+      5  -0.214446D-02 -0.155912D+00  0.000000D+00  0.541690D+00 -0.317029D+00
+      6  -0.140262D-01  0.450746D+00  0.000000D+00  0.386352D+00  0.102234D+01
+      7   0.000000D+00  0.000000D+00  0.000000D+00  0.000000D+00  0.000000D+00
+      8   0.000000D+00  0.000000D+00  0.228564D+00  0.000000D+00  0.000000D+00
+      9   0.278536D-02 -0.723097D-01  0.000000D+00  0.370715D+00 -0.435885D+00
+     10   0.176819D-03  0.147111D+00  0.264860D+00 -0.142697D+00 -0.121143D+00
+     11   0.317968D-02  0.465098D-02  0.161653D+00 -0.121044D+00 -0.896683D+00
+     12   0.176819D-03  0.147111D+00 -0.264860D+00 -0.142697D+00 -0.121143D+00
+     13   0.317968D-02  0.465098D-02 -0.161653D+00 -0.121044D+00 -0.896683D+00
+                 6             7             8             9            10 
+      1   0.000000D+00  0.000000D+00  0.000000D+00  0.385310D-01  0.000000D+00
+      2   0.000000D+00  0.000000D+00  0.000000D+00 -0.221911D+00  0.000000D+00
+      3   0.647275D+00  0.000000D+00  0.000000D+00  0.000000D+00 -0.957644D+00
+      4   0.000000D+00 -0.449792D+00 -0.273572D+00  0.000000D+00  0.000000D+00
+      5   0.000000D+00  0.000000D+00  0.000000D+00  0.652973D+00  0.000000D+00
+      6   0.000000D+00  0.000000D+00  0.000000D+00  0.331319D+00  0.000000D+00
+      7   0.503880D+00  0.000000D+00  0.000000D+00  0.000000D+00  0.104027D+01
+      8   0.000000D+00 -0.726518D+00 -0.307641D+00  0.000000D+00  0.000000D+00
+      9   0.000000D+00  0.000000D+00  0.000000D+00 -0.342542D+00  0.000000D+00
+     10   0.000000D+00  0.117810D+00  0.960865D+00  0.795822D+00  0.000000D+00
+     11   0.000000D+00  0.119407D+01 -0.803735D+00 -0.656777D+00  0.000000D+00
+     12   0.000000D+00 -0.117810D+00 -0.960865D+00  0.795822D+00  0.000000D+00
+     13   0.000000D+00 -0.119407D+01  0.803735D+00 -0.656777D+00  0.000000D+00
+                11            12            13 
+      1   0.703915D-01  0.000000D+00  0.578930D-01
+      2  -0.437058D+00  0.000000D+00 -0.166219D+01
+      3   0.000000D+00  0.000000D+00  0.000000D+00
+      4   0.000000D+00 -0.951370D+00  0.000000D+00
+      5  -0.702194D+00  0.000000D+00  0.188185D+00
+      6   0.109915D+00  0.000000D+00  0.267344D+01
+      7   0.000000D+00  0.000000D+00  0.000000D+00
+      8   0.000000D+00  0.171476D+01  0.000000D+00
+      9   0.114894D+01  0.000000D+00 -0.821058D+00
+     10   0.546143D+00 -0.133539D+00 -0.443822D+00
+     11  -0.116996D+00 -0.821654D+00 -0.594544D+00
+     12   0.546143D+00  0.133539D+00 -0.443822D+00
+     13  -0.116996D+00  0.821654D+00 -0.594544D+00
+ stp1-printingfullmatriz-2
+
+                  Full Alpha Molecular Overlap Matrix 
+
+                 1             2             3             4             5 
+      1   0.100000D+01  0.987166D-16  0.000000D+00 -0.624500D-16 -0.333146D-33
+      2   0.148753D-15  0.100000D+01  0.000000D+00  0.693889D-16  0.787918D-31
+      3  -0.151788D-17  0.127936D-16  0.100000D+01 -0.693889D-17 -0.660167D-30
+      4  -0.324176D-16  0.148969D-15 -0.208167D-16  0.100000D+01 -0.337225D-30
+      5  -0.960603D-16  0.686517D-15  0.416334D-16  0.485723D-15  0.338300D-30
+      6  -0.333146D-33  0.787918D-31 -0.660167D-30 -0.337225D-30  0.100000D+01
+      7   0.000000D+00  0.433681D-18  0.215106D-15  0.000000D+00  0.682909D-30
+      8   0.000000D+00  0.205998D-17 -0.135308D-15  0.173472D-17  0.364846D-30
+      9  -0.136609D-16 -0.109721D-15 -0.312250D-16  0.156125D-15 -0.156262D-30
+     10  -0.127539D-32 -0.196412D-31  0.163434D-31  0.257475D-31 -0.166533D-15
+     11   0.100424D-15  0.150270D-15  0.346945D-17 -0.466641D-15 -0.172808D-30
+     12   0.243945D-18  0.813152D-18 -0.416334D-15  0.173472D-17 -0.347149D-30
+     13   0.215973D-15  0.659954D-15  0.104083D-16  0.777156D-15  0.285100D-30
+                 6             7             8             9            10 
+      1  -0.180411D-15  0.000000D+00  0.000000D+00  0.693889D-17 -0.127539D-32
+      2   0.666134D-15  0.000000D+00  0.000000D+00 -0.166533D-15 -0.196412D-31
+      3   0.000000D+00  0.111022D-15 -0.111022D-15  0.555112D-16  0.163434D-31
+      4   0.582867D-15 -0.277556D-16 -0.416334D-16  0.180411D-15  0.257475D-31
+      5   0.100000D+01  0.111022D-15  0.000000D+00  0.721645D-15  0.979853D-31
+      6   0.338300D-30  0.682909D-30  0.364846D-30 -0.156262D-30  0.111022D-15
+      7   0.000000D+00  0.100000D+01  0.444089D-15  0.000000D+00 -0.324737D-31
+      8   0.000000D+00  0.277556D-15  0.100000D+01 -0.138778D-16  0.244001D-31
+      9   0.735523D-15  0.277556D-16 -0.138778D-15  0.100000D+01  0.205390D-30
+     10   0.979853D-31 -0.324737D-31  0.244001D-31  0.205390D-30  0.100000D+01
+     11   0.416334D-16  0.000000D+00 -0.277556D-16  0.194289D-15 -0.442237D-30
+     12  -0.555112D-16  0.208167D-15 -0.867362D-15 -0.346945D-16 -0.105935D-29
+     13   0.166533D-14  0.277556D-16  0.111022D-15  0.138778D-16  0.292069D-30
+                11            12            13 
+      1   0.121431D-15  0.000000D+00  0.201228D-15
+      2   0.180411D-15  0.000000D+00  0.499600D-15
+      3   0.277556D-16 -0.444089D-15 -0.277556D-16
+      4  -0.159595D-15  0.416334D-16  0.707767D-15
+      5   0.124900D-15 -0.111022D-15  0.116573D-14
+      6  -0.172808D-30 -0.347149D-30  0.285100D-30
+      7  -0.693889D-17  0.222045D-15  0.000000D+00
+      8   0.693889D-17 -0.101308D-14  0.000000D+00
+      9   0.121431D-16 -0.138778D-16  0.138778D-16
+     10  -0.442237D-30 -0.105935D-29  0.292069D-30
+     11   0.100000D+01  0.000000D+00 -0.187350D-15
+     12   0.381639D-16  0.100000D+01 -0.624500D-16
+     13  -0.228983D-15 -0.555112D-16  0.100000D+01
+
+                  Full Beta Molecular Overlap Matrix 
+
+                 1             2             3             4             5 
+      1   0.100000D+01  0.987166D-16  0.000000D+00 -0.624500D-16 -0.333146D-33
+      2   0.148753D-15  0.100000D+01  0.000000D+00  0.693889D-16  0.787918D-31
+      3  -0.151788D-17  0.127936D-16  0.100000D+01 -0.693889D-17 -0.660167D-30
+      4  -0.324176D-16  0.148969D-15 -0.208167D-16  0.100000D+01 -0.337225D-30
+      5  -0.333146D-33  0.787918D-31 -0.660167D-30 -0.337225D-30  0.100000D+01
+      6  -0.960603D-16  0.686517D-15  0.416334D-16  0.485723D-15  0.338300D-30
+      7   0.000000D+00  0.433681D-18  0.215106D-15  0.000000D+00  0.682909D-30
+      8   0.000000D+00  0.205998D-17 -0.135308D-15  0.173472D-17  0.364846D-30
+      9  -0.136609D-16 -0.109721D-15 -0.312250D-16  0.156125D-15 -0.156262D-30
+     10  -0.127539D-32 -0.196412D-31  0.163434D-31  0.257475D-31 -0.166533D-15
+     11   0.100424D-15  0.150270D-15  0.346945D-17 -0.466641D-15 -0.172808D-30
+     12   0.243945D-18  0.813152D-18 -0.416334D-15  0.173472D-17 -0.347149D-30
+     13   0.215973D-15  0.659954D-15  0.104083D-16  0.777156D-15  0.285100D-30
+                 6             7             8             9            10 
+      1  -0.180411D-15  0.000000D+00  0.000000D+00  0.693889D-17 -0.127539D-32
+      2   0.666134D-15  0.000000D+00  0.000000D+00 -0.166533D-15 -0.196412D-31
+      3   0.000000D+00  0.111022D-15 -0.111022D-15  0.555112D-16  0.163434D-31
+      4   0.582867D-15 -0.277556D-16 -0.416334D-16  0.180411D-15  0.257475D-31
+      5   0.338300D-30  0.682909D-30  0.364846D-30 -0.156262D-30  0.111022D-15
+      6   0.100000D+01  0.111022D-15  0.000000D+00  0.721645D-15  0.979853D-31
+      7   0.000000D+00  0.100000D+01  0.444089D-15  0.000000D+00 -0.324737D-31
+      8   0.000000D+00  0.277556D-15  0.100000D+01 -0.138778D-16  0.244001D-31
+      9   0.735523D-15  0.277556D-16 -0.138778D-15  0.100000D+01  0.205390D-30
+     10   0.979853D-31 -0.324737D-31  0.244001D-31  0.205390D-30  0.100000D+01
+     11   0.416334D-16  0.000000D+00 -0.277556D-16  0.194289D-15 -0.442237D-30
+     12  -0.555112D-16  0.208167D-15 -0.867362D-15 -0.346945D-16 -0.105935D-29
+     13   0.166533D-14  0.277556D-16  0.111022D-15  0.138778D-16  0.292069D-30
+                11            12            13 
+      1   0.121431D-15  0.000000D+00  0.201228D-15
+      2   0.180411D-15  0.000000D+00  0.499600D-15
+      3   0.277556D-16 -0.444089D-15 -0.277556D-16
+      4  -0.159595D-15  0.416334D-16  0.707767D-15
+      5  -0.172808D-30 -0.347149D-30  0.285100D-30
+      6   0.124900D-15 -0.111022D-15  0.116573D-14
+      7  -0.693889D-17  0.222045D-15  0.000000D+00
+      8   0.693889D-17 -0.101308D-14  0.000000D+00
+      9   0.121431D-16 -0.138778D-16  0.138778D-16
+     10  -0.442237D-30 -0.105935D-29  0.292069D-30
+     11   0.100000D+01  0.000000D+00 -0.187350D-15
+     12   0.381639D-16  0.100000D+01 -0.624500D-16
+     13  -0.228983D-15 -0.555112D-16  0.100000D+01
+ Loc of iMomSc           48001143298864
+ Location of the pointer VMom-uhfopn                  48001143298864.
+ Location of the pointer VMom                  48001143298864.
+
+ Cycle   1  Pass 1  IDiag  1:
+ E= -76.0398614037080    
+ DIIS: error= 8.21D-02 at cycle   1 NSaved=   1.
+ NSaved= 1 IEnMin= 1 EnMin= -76.0398614037080     IErMin= 1 ErrMin= 8.21D-02
+ ErrMax= 8.21D-02  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.61D-01 BMatP= 2.61D-01
+ IDIUse=3 WtCom= 1.79D-01 WtEn= 8.21D-01
+ Coeff-Com:  0.100D+01
+ Coeff-En:   0.100D+01
+ Coeff:      0.100D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.404 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.999999D+00
+      2   0.998176D+00
+      3   0.995021D+00
+      4   0.989615D+00
+      5   0.966789D+00
+      6   0.298501D-01
+      7   0.124614D-01
+      8   0.253829D-02
+      9   0.218952D-02
+     10   0.179199D-02
+     11   0.156894D-02
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.950
+ Number of Alpha electrons in the initial virtual space    0.050
+ Gap=     0.533 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.999999D+00
+      2   0.993889D+00
+      3   0.984284D+00
+      4   0.969053D+00
+      5   0.956670D+00
+      6   0.400392D-01
+      7   0.256294D-01
+      8   0.157164D-01
+      9   0.904980D-02
+     10   0.169725D-02
+     11   0.169567D-02
+     12   0.159490D-02
+     13   0.682500D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.904
+ Number of Beta electrons in the initial virtual space    0.096
+ GapD=    0.404 DampG=2.000 DampE=0.500 DampFc=1.0000 IDamp=-1.
+ RMSDP=4.56D-02 MaxDP=3.34D-01              OVMax= 1.99D-01
+
+ Cycle   2  Pass 1  IDiag  1:
+ E= -75.9985342898178     Delta-E=        0.041327113890 Rises=F Damp=F
+ DIIS: error= 1.06D-01 at cycle   2 NSaved=   2.
+ NSaved= 2 IEnMin= 1 EnMin= -76.0398614037080     IErMin= 1 ErrMin= 8.21D-02
+ ErrMax= 1.06D-01  0.00D+00 EMaxC= 1.00D-01 BMatC= 4.94D-01 BMatP= 2.61D-01
+ IDIUse=2 WtCom= 0.00D+00 WtEn= 1.00D+00
+ Coeff-En:   0.620D+00 0.380D+00
+ Coeff:      0.620D+00 0.380D+00
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.306 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999784D+00
+      3   0.999019D+00
+      4   0.998356D+00
+      5   0.993143D+00
+      6   0.621927D-02
+      7   0.198460D-02
+      8   0.521672D-03
+      9   0.378643D-03
+     10   0.335096D-03
+     11   0.259097D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.990
+ Number of Alpha electrons in the initial virtual space    0.010
+ Gap=     0.449 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998281D+00
+      3   0.995352D+00
+      4   0.989653D+00
+      5   0.984568D+00
+      6   0.143895D-01
+      7   0.949086D-02
+      8   0.464790D-02
+      9   0.176918D-02
+     10   0.744289D-03
+     11   0.672701D-03
+     12   0.298484D-03
+     13   0.133861D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.968
+ Number of Beta electrons in the initial virtual space    0.032
+ RMSDP=2.48D-02 MaxDP=2.04D-01 DE= 4.13D-02 OVMax= 9.59D-02
+
+ Cycle   3  Pass 1  IDiag  1:
+ E= -76.0950836572930     Delta-E=       -0.096549367475 Rises=F Damp=F
+ DIIS: error= 1.40D-02 at cycle   3 NSaved=   3.
+ NSaved= 3 IEnMin= 3 EnMin= -76.0950836572930     IErMin= 3 ErrMin= 1.40D-02
+ ErrMax= 1.40D-02  0.00D+00 EMaxC= 1.00D-01 BMatC= 6.46D-03 BMatP= 2.61D-01
+ IDIUse=3 WtCom= 8.60D-01 WtEn= 1.40D-01
+ Coeff-Com:  0.437D-01-0.872D-01 0.104D+01
+ Coeff-En:   0.000D+00 0.000D+00 0.100D+01
+ Coeff:      0.376D-01-0.750D-01 0.104D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.292 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999900D+00
+      3   0.999333D+00
+      4   0.999049D+00
+      5   0.996174D+00
+      6   0.349677D-02
+      7   0.117080D-02
+      8   0.372826D-03
+      9   0.196581D-03
+     10   0.173882D-03
+     11   0.133021D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.439 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998613D+00
+      3   0.996270D+00
+      4   0.991836D+00
+      5   0.987503D+00
+      6   0.116541D-01
+      7   0.760224D-02
+      8   0.373043D-02
+      9   0.125298D-02
+     10   0.635533D-03
+     11   0.587444D-03
+     12   0.207861D-03
+     13   0.109173D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.974
+ Number of Beta electrons in the initial virtual space    0.026
+ RMSDP=4.12D-03 MaxDP=3.60D-02 DE=-9.65D-02 OVMax= 2.04D-02
+
+ Cycle   4  Pass 1  IDiag  1:
+ E= -76.0963624692646     Delta-E=       -0.001278811972 Rises=F Damp=F
+ DIIS: error= 2.71D-03 at cycle   4 NSaved=   4.
+ NSaved= 4 IEnMin= 4 EnMin= -76.0963624692646     IErMin= 4 ErrMin= 2.71D-03
+ ErrMax= 2.71D-03  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.58D-04 BMatP= 6.46D-03
+ IDIUse=3 WtCom= 9.73D-01 WtEn= 2.71D-02
+ Coeff-Com: -0.199D-01 0.201D-01-0.858D-01 0.109D+01
+ Coeff-En:   0.000D+00 0.000D+00 0.000D+00 0.100D+01
+ Coeff:     -0.193D-01 0.196D-01-0.835D-01 0.108D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.295 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999892D+00
+      3   0.999288D+00
+      4   0.998990D+00
+      5   0.995963D+00
+      6   0.369257D-02
+      7   0.124617D-02
+      8   0.396096D-03
+      9   0.202797D-03
+     10   0.187349D-03
+     11   0.141314D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.442 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998520D+00
+      3   0.996076D+00
+      4   0.991336D+00
+      5   0.986707D+00
+      6   0.123656D-01
+      7   0.803643D-02
+      8   0.392423D-02
+      9   0.138763D-02
+     10   0.693028D-03
+     11   0.603917D-03
+     12   0.234618D-03
+     13   0.116789D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.973
+ Number of Beta electrons in the initial virtual space    0.027
+ RMSDP=5.67D-04 MaxDP=3.58D-03 DE=-1.28D-03 OVMax= 3.44D-03
+
+ Cycle   5  Pass 1  IDiag  1:
+ E= -76.0964160450105     Delta-E=       -0.000053575746 Rises=F Damp=F
+ DIIS: error= 9.42D-05 at cycle   5 NSaved=   5.
+ NSaved= 5 IEnMin= 5 EnMin= -76.0964160450105     IErMin= 5 ErrMin= 9.42D-05
+ ErrMax= 9.42D-05  0.00D+00 EMaxC= 1.00D-01 BMatC= 1.64D-07 BMatP= 2.58D-04
+ IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.416D-03 0.156D-02-0.259D-01-0.317D-01 0.106D+01
+ Coeff:     -0.416D-03 0.156D-02-0.259D-01-0.317D-01 0.106D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.295 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999894D+00
+      3   0.999286D+00
+      4   0.998995D+00
+      5   0.995990D+00
+      6   0.367021D-02
+      7   0.124219D-02
+      8   0.397511D-03
+      9   0.199373D-03
+     10   0.186307D-03
+     11   0.140175D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.442 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998517D+00
+      3   0.996076D+00
+      4   0.991330D+00
+      5   0.986693D+00
+      6   0.123766D-01
+      7   0.803988D-02
+      8   0.392352D-02
+      9   0.139153D-02
+     10   0.695052D-03
+     11   0.604493D-03
+     12   0.235613D-03
+     13   0.117113D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.973
+ Number of Beta electrons in the initial virtual space    0.027
+ RMSDP=2.79D-05 MaxDP=1.87D-04 DE=-5.36D-05 OVMax= 2.19D-04
+
+ Cycle   6  Pass 1  IDiag  1:
+ E= -76.0964161127250     Delta-E=       -0.000000067714 Rises=F Damp=F
+ DIIS: error= 2.83D-06 at cycle   6 NSaved=   6.
+ NSaved= 6 IEnMin= 6 EnMin= -76.0964161127250     IErMin= 6 ErrMin= 2.83D-06
+ ErrMax= 2.83D-06  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.33D-10 BMatP= 1.64D-07
+ IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com:  0.118D-03-0.114D-03 0.372D-03-0.650D-02 0.233D-01 0.983D+00
+ Coeff:      0.118D-03-0.114D-03 0.372D-03-0.650D-02 0.233D-01 0.983D+00
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.295 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999894D+00
+      3   0.999286D+00
+      4   0.998995D+00
+      5   0.995990D+00
+      6   0.367021D-02
+      7   0.124215D-02
+      8   0.397520D-03
+      9   0.199403D-03
+     10   0.186313D-03
+     11   0.140190D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.442 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998517D+00
+      3   0.996077D+00
+      4   0.991330D+00
+      5   0.986692D+00
+      6   0.123765D-01
+      7   0.804007D-02
+      8   0.392313D-02
+      9   0.139168D-02
+     10   0.695364D-03
+     11   0.604388D-03
+     12   0.235637D-03
+     13   0.117090D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.973
+ Number of Beta electrons in the initial virtual space    0.027
+ RMSDP=8.57D-07 MaxDP=4.02D-06 DE=-6.77D-08 OVMax= 4.79D-06
+
+ Cycle   7  Pass 1  IDiag  1:
+ E= -76.0964161128079     Delta-E=       -0.000000000083 Rises=F Damp=F
+ DIIS: error= 2.22D-07 at cycle   7 NSaved=   7.
+ NSaved= 7 IEnMin= 7 EnMin= -76.0964161128079     IErMin= 7 ErrMin= 2.22D-07
+ ErrMax= 2.22D-07  0.00D+00 EMaxC= 1.00D-01 BMatC= 2.79D-12 BMatP= 2.33D-10
+ IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.767D-05 0.338D-05 0.514D-04 0.632D-03-0.608D-02-0.668D-01
+ Coeff-Com:  0.107D+01
+ Coeff:     -0.767D-05 0.338D-05 0.514D-04 0.632D-03-0.608D-02-0.668D-01
+ Coeff:      0.107D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.295 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999894D+00
+      3   0.999286D+00
+      4   0.998995D+00
+      5   0.995990D+00
+      6   0.367018D-02
+      7   0.124215D-02
+      8   0.397532D-03
+      9   0.199392D-03
+     10   0.186312D-03
+     11   0.140191D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.442 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998517D+00
+      3   0.996077D+00
+      4   0.991330D+00
+      5   0.986692D+00
+      6   0.123765D-01
+      7   0.804008D-02
+      8   0.392310D-02
+      9   0.139167D-02
+     10   0.695373D-03
+     11   0.604379D-03
+     12   0.235634D-03
+     13   0.117088D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.973
+ Number of Beta electrons in the initial virtual space    0.027
+ RMSDP=1.04D-07 MaxDP=4.25D-07 DE=-8.29D-11 OVMax= 4.81D-07
+
+ Cycle   8  Pass 1  IDiag  1:
+ E= -76.0964161128088     Delta-E=       -0.000000000001 Rises=F Damp=F
+ DIIS: error= 1.58D-08 at cycle   8 NSaved=   8.
+ NSaved= 8 IEnMin= 8 EnMin= -76.0964161128088     IErMin= 8 ErrMin= 1.58D-08
+ ErrMax= 1.58D-08  0.00D+00 EMaxC= 1.00D-01 BMatC= 9.06D-15 BMatP= 2.79D-12
+ IDIUse=1 WtCom= 1.00D+00 WtEn= 0.00D+00
+ Coeff-Com: -0.880D-06 0.402D-06 0.701D-06 0.460D-04-0.293D-03-0.681D-02
+ Coeff-Com:  0.686D-02 0.100D+01
+ Coeff:     -0.880D-06 0.402D-06 0.701D-06 0.460D-04-0.293D-03-0.681D-02
+ Coeff:      0.686D-02 0.100D+01
+ Cycopn-- Nbasis=    13 Nbsuse=    13 .
+ VMOM(LenY) loc=                  48001143298864.
+ Gap=     0.295 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Alpha
+
+ Im here in UHFOPN
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.999894D+00
+      3   0.999286D+00
+      4   0.998995D+00
+      5   0.995990D+00
+      6   0.367017D-02
+      7   0.124215D-02
+      8   0.397533D-03
+      9   0.199392D-03
+     10   0.186312D-03
+     11   0.140191D-03
+     12   0.000000D+00
+     13   0.000000D+00
+ 
+ Total number of Alpha electrons =     5.000
+ Number of Alpha electrons in the initial occupied space =    4.994
+ Number of Alpha electrons in the initial virtual space    0.006
+ Gap=     0.442 Goal=   None    Shift=    0.000
+
+ Starting PIMOM for Beta
+
+ P values 
+                 1 
+      1   0.100000D+01
+      2   0.998517D+00
+      3   0.996077D+00
+      4   0.991330D+00
+      5   0.986692D+00
+      6   0.123765D-01
+      7   0.804008D-02
+      8   0.392310D-02
+      9   0.139167D-02
+     10   0.695375D-03
+     11   0.604378D-03
+     12   0.235634D-03
+     13   0.117088D-03
+ 
+ Total number of Beta electrons =     5.000
+ Number of Beta electrons in the initial occupied space =    4.973
+ Number of Beta electrons in the initial virtual space    0.027
+ RMSDP=7.84D-09 MaxDP=4.69D-08 DE=-8.67D-13 OVMax= 3.11D-08
+
+ SCF Done:  E(UB-LYP) =  -76.0964161128     A.U. after    8 cycles
+            NFock=  8  Conv=0.78D-08     -V/T= 1.9975
+ <Sx>= 0.0000 <Sy>= 0.0000 <Sz>= 0.0000 <S**2>= 1.0031 S= 0.6194
+ <L.S>=  0.00000000000    
+ KE= 7.628471373500D+01 PE=-1.972298109864D+02 EE= 3.595619813451D+01
+ Annihilation of the first spin contaminant:
+ S**2 before annihilation     1.0031,   after     0.0249
+ Leave Link  502 at Wed Feb 21 13:47:45 2024, MaxMem=  4294967296 cpu:               4.7 elap:               1.2
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l601.exe)
+ Copying SCF densities to generalized density rwf, IOpCl= 1 IROHF=0.
+
+ **********************************************************************
+
+            Population analysis using the SCF Density.
+
+ **********************************************************************
+
+ Orbital symmetries:
+ Alpha Orbitals:
+       Occupied  (A1) (A1) (A1) (A1) (B2)
+       Virtual   (B2) (A1) (A1) (B2) (A1) (B2) (B1) (B1)
+ Beta  Orbitals:
+       Occupied  (A1) (A1) (B1) (A1) (B2)
+       Virtual   (B2) (A1) (B1) (A1) (B2) (A1) (B2) (A1)
+ The electronic state is 1-B1.
+ Alpha  occ. eigenvalues --      -18.94171      -1.00864      -0.03168      -0.41853      -0.56144
+ Alpha virt. eigenvalues --        0.04527       0.70309       0.80868       0.69783       1.28432
+ Alpha virt. eigenvalues --        0.91239      -0.32618       0.75862
+  Beta  occ. eigenvalues --      -18.95785      -1.04543      -0.44211      -0.43284      -0.56556
+  Beta virt. eigenvalues --        0.08532       0.00922       0.68114       0.72024       0.73298
+  Beta virt. eigenvalues --        0.81988       0.91066       1.25733
+     Alpha Molecular Orbital Coefficients:
+                           1         2         3         4         5
+                        (A1)--O   (A1)--O   (A1)--O   (A1)--O   (B2)--O
+     Eigenvalues --   -18.94171  -1.00864  -0.03168  -0.41853  -0.56144
+   1 1   O  1S          0.99498  -0.21512  -0.09200  -0.07847   0.00000
+   2        2S          0.02856   0.49222   0.19552   0.17584   0.00000
+   3        2PX         0.00000   0.00000   0.00000   0.00000   0.00000
+   4        2PY         0.00000   0.00000   0.00000   0.00000   0.55660
+   5        2PZ        -0.00151  -0.13900  -0.29444   0.59694   0.00000
+   6        3S         -0.01366   0.45848   0.99815   0.30611   0.00000
+   7        3PX         0.00000   0.00000   0.00000   0.00000   0.00000
+   8        3PY         0.00000   0.00000   0.00000   0.00000   0.25340
+   9        3PZ         0.00247  -0.05594  -0.39844   0.36625   0.00000
+  10 2   H  1S          0.00019   0.13656  -0.14898  -0.13587   0.24361
+  11        2S          0.00305  -0.00520  -0.87932  -0.07687   0.11398
+  12 3   H  1S          0.00019   0.13656  -0.14898  -0.13587  -0.24361
+  13        2S          0.00305  -0.00520  -0.87932  -0.07687  -0.11398
+                           6         7         8         9        10
+                        (B2)--V   (A1)--V   (A1)--V   (B2)--V   (A1)--V
+     Eigenvalues --     0.04527   0.70309   0.80868   0.69783   1.28432
+   1 1   O  1S          0.00000   0.01728   0.07720   0.00000   0.05198
+   2        2S          0.00000  -0.07676  -0.54174   0.00000  -1.63621
+   3        2PX         0.00000   0.00000   0.00000   0.00000   0.00000
+   4        2PY        -0.45231   0.00000   0.00000  -0.24590   0.00000
+   5        2PZ         0.00000   0.78436  -0.49846   0.00000   0.21694
+   6        3S          0.00000   0.26800   0.32084   0.00000   2.68175
+   7        3PX         0.00000   0.00000   0.00000   0.00000   0.00000
+   8        3PY        -0.67298   0.00000   0.00000  -0.29137   0.00000
+   9        3PZ         0.00000  -0.63052   0.98981   0.00000  -0.87801
+  10 2   H  1S          0.15997   0.63874   0.70851   0.96103  -0.46474
+  11        2S          1.15274  -0.61395  -0.31616  -0.83425  -0.60101
+  12 3   H  1S         -0.15997   0.63874   0.70851  -0.96103  -0.46474
+  13        2S         -1.15274  -0.61395  -0.31616   0.83425  -0.60101
+     Beta Molecular Orbital Coefficients:
+                           1         2         3         4         5
+                        (A1)--O   (A1)--O   (B1)--O   (A1)--O   (B2)--O
+     Eigenvalues --   -18.95785  -1.04543  -0.44211  -0.43284  -0.56556
+   1 1   O  1S          0.99481  -0.22161   0.00000  -0.06830   0.00000
+   2        2S          0.02954   0.50923   0.00000   0.16746   0.00000
+   3        2PX         0.00000   0.00000   0.70599   0.00000   0.00000
+   4        2PY         0.00000   0.00000   0.00000   0.00000   0.58651
+   5        2PZ        -0.00133  -0.11501   0.00000   0.61408   0.00000
+   6        3S         -0.01417   0.48806   0.00000   0.24162   0.00000
+   7        3PX         0.00000   0.00000   0.43773   0.00000   0.00000
+   8        3PY         0.00000   0.00000   0.00000   0.00000   0.28271
+   9        3PZ         0.00246  -0.06036   0.00000   0.37545   0.00000
+  10 2   H  1S          0.00017   0.11447   0.00000  -0.13292   0.22207
+  11        2S          0.00315  -0.01956   0.00000  -0.05578   0.07207
+  12 3   H  1S          0.00017   0.11447   0.00000  -0.13292  -0.22207
+  13        2S          0.00315  -0.01956   0.00000  -0.05578  -0.07207
+                           6         7         8         9        10
+                        (B2)--V   (A1)--V   (B1)--V   (A1)--V   (B2)--V
+     Eigenvalues --     0.08532   0.00922   0.68114   0.72024   0.73298
+   1 1   O  1S          0.00000  -0.09077   0.00000  -0.00003   0.00000
+   2        2S          0.00000   0.22162   0.00000   0.06437   0.00000
+   3        2PX         0.00000   0.00000  -0.91522   0.00000   0.00000
+   4        2PY        -0.44488   0.00000   0.00000   0.00000  -0.20020
+   5        2PZ         0.00000  -0.27792   0.00000   0.86595   0.00000
+   6        3S          0.00000   0.94546   0.00000   0.14855   0.00000
+   7        3PX         0.00000   0.00000   1.06978   0.00000   0.00000
+   8        3PY        -0.62963   0.00000   0.00000   0.00000  -0.33773
+   9        3PZ         0.00000  -0.38482   0.00000  -0.81787   0.00000
+  10 2   H  1S          0.18258  -0.15259   0.00000   0.47952   0.96580
+  11        2S          1.12882  -0.86750   0.00000  -0.51930  -0.81855
+  12 3   H  1S         -0.18258  -0.15259   0.00000   0.47952  -0.96580
+  13        2S         -1.12882  -0.86750   0.00000  -0.51930   0.81855
+     Alpha Density Matrix:
+                           1         2         3         4         5
+   1 1   O  1S          1.05088
+   2        2S         -0.10925   0.31224
+   3        2PX        -0.00000   0.00000   0.00000
+   4        2PY         0.00000  -0.00000  -0.00000   0.30980
+   5        2PZ         0.00864  -0.02106  -0.00000   0.00000   0.46236
+   6        3S         -0.22808   0.47427   0.00000  -0.00000  -0.17488
+   7        3PX        -0.00000   0.00000   0.00000  -0.00000  -0.00000
+   8        3PY         0.00000  -0.00000  -0.00000   0.14105   0.00000
+   9        3PZ         0.02241  -0.04097  -0.00000   0.00000   0.34372
+  10 2   H  1S         -0.00482   0.01420  -0.00000   0.13560  -0.05622
+  11        2S          0.09108  -0.18792  -0.00000   0.06344   0.21374
+  12 3   H  1S         -0.00482   0.01420   0.00000  -0.13560  -0.05622
+  13        2S          0.09108  -0.18792   0.00000  -0.06344   0.21374
+                           6         7         8         9        10
+   6        3S          1.30040
+   7        3PX         0.00000   0.00000
+   8        3PY        -0.00000  -0.00000   0.06421
+   9        3PZ        -0.31127  -0.00000   0.00000   0.29602
+  10 2   H  1S         -0.12769  -0.00000   0.06173   0.00196   0.11865
+  11        2S         -0.90365  -0.00000   0.02888   0.32250   0.16850
+  12 3   H  1S         -0.12769   0.00000  -0.06173   0.00196  -0.00005
+  13        2S         -0.90365   0.00000  -0.02888   0.32250   0.11297
+                          11        12        13
+  11        2S          0.79213
+  12 3   H  1S          0.11297   0.11865
+  13        2S          0.76615   0.16850   0.79213
+     Beta Density Matrix:
+                           1         2         3         4         5
+   1 1   O  1S          1.04342
+   2        2S         -0.09490   0.28823
+   3        2PX         0.00000  -0.00000   0.49842
+   4        2PY        -0.00000   0.00000   0.00000   0.34400
+   5        2PZ        -0.01778   0.04423  -0.00000   0.00000   0.39033
+   6        3S         -0.13876   0.28858  -0.00000   0.00000   0.09226
+   7        3PX         0.00000  -0.00000   0.30903   0.00000  -0.00000
+   8        3PY        -0.00000   0.00000   0.00000   0.16581   0.00000
+   9        3PZ        -0.00982   0.03221  -0.00000   0.00000   0.23749
+  10 2   H  1S         -0.01613   0.03604  -0.00000   0.13025  -0.09479
+  11        2S          0.01128  -0.01921  -0.00000   0.04227  -0.03201
+  12 3   H  1S         -0.01613   0.03604   0.00000  -0.13025  -0.09479
+  13        2S          0.01128  -0.01921   0.00000  -0.04227  -0.03201
+                           6         7         8         9        10
+   6        3S          0.29678
+   7        3PX        -0.00000   0.19161
+   8        3PY         0.00000   0.00000   0.07992
+   9        3PZ         0.06122  -0.00000   0.00000   0.14461
+  10 2   H  1S          0.02375  -0.00000   0.06278  -0.05681   0.08009
+  11        2S         -0.02307  -0.00000   0.02037  -0.01975   0.02118
+  12 3   H  1S          0.02375   0.00000  -0.06278  -0.05681  -0.01854
+  13        2S         -0.02307   0.00000  -0.02037  -0.01975  -0.01083
+                          11        12        13
+  11        2S          0.00870
+  12 3   H  1S         -0.01083   0.08009
+  13        2S         -0.00169   0.02118   0.00870
+    Full Mulliken population analysis:
+                           1         2         3         4         5
+   1 1   O  1S          2.09431
+   2        2S         -0.04771   0.60048
+   3        2PX         0.00000   0.00000   0.49842
+   4        2PY         0.00000   0.00000   0.00000   0.65380
+   5        2PZ         0.00000   0.00000   0.00000   0.00000   0.85269
+   6        3S         -0.06136   0.58254   0.00000   0.00000   0.00000
+   7        3PX         0.00000   0.00000   0.15499  -0.00000   0.00000
+   8        3PY         0.00000   0.00000  -0.00000   0.15390   0.00000
+   9        3PZ         0.00000   0.00000   0.00000   0.00000   0.29149
+  10 2   H  1S         -0.00064   0.01143   0.00000   0.05733   0.02426
+  11        2S          0.00682  -0.07643   0.00000   0.01255  -0.01607
+  12 3   H  1S         -0.00064   0.01143   0.00000   0.05733   0.02426
+  13        2S          0.00682  -0.07643   0.00000   0.01255  -0.01607
+                           6         7         8         9        10
+   6        3S          1.59718
+   7        3PX         0.00000   0.19161
+   8        3PY         0.00000  -0.00000   0.14414
+   9        3PZ         0.00000   0.00000   0.00000   0.44063
+  10 2   H  1S         -0.04256   0.00000   0.05767   0.01892   0.19874
+  11        2S         -0.61990   0.00000   0.01920  -0.08789   0.12486
+  12 3   H  1S         -0.04256   0.00000   0.05767   0.01892  -0.00074
+  13        2S         -0.61990   0.00000   0.01920  -0.08789   0.02066
+                          11        12        13
+  11        2S          0.80083
+  12 3   H  1S          0.02066   0.19874
+  13        2S          0.37027   0.12486   0.80083
+     Gross orbital populations:
+                         Total     Alpha     Beta      Spin
+   1 1   O  1S          1.99759   0.99904   0.99855   0.00050
+   2        2S          1.00531   0.51666   0.48865   0.02801
+   3        2PX         0.65340   0.00000   0.65340  -0.65340
+   4        2PY         0.94746   0.45409   0.49337  -0.03928
+   5        2PZ         1.16056   0.61501   0.54555   0.06946
+   6        3S          0.79344   0.31091   0.48253  -0.17163
+   7        3PX         0.34660   0.00000   0.34660  -0.34660
+   8        3PY         0.45176   0.21464   0.23711  -0.02247
+   9        3PZ         0.59420   0.27981   0.31439  -0.03458
+  10 2   H  1S          0.46993   0.26940   0.20053   0.06887
+  11        2S          0.55491   0.53552   0.01939   0.51614
+  12 3   H  1S          0.46993   0.26940   0.20053   0.06887
+  13        2S          0.55491   0.53552   0.01939   0.51614
+          Condensed to atoms (all electrons):
+               1          2          3
+     1  O    9.220930  -0.635308  -0.635308
+     2  H   -0.635308   1.249300   0.410850
+     3  H   -0.635308   0.410850   1.249300
+          Atomic-Atomic Spin Densities.
+               1          2          3
+     1  O    0.537336  -0.853672  -0.853672
+     2  H   -0.853672   1.015954   0.422721
+     3  H   -0.853672   0.422721   1.015954
+ Mulliken charges and spin densities:
+               1          2
+     1  O    0.049685  -1.170007
+     2  H   -0.024843   0.585003
+     3  H   -0.024843   0.585003
+ Sum of Mulliken charges =  -0.00000   0.00000
+ Mulliken charges and spin densities with hydrogens summed into heavy atoms:
+               1          2
+     1  O   -0.000000   0.000000
+ Electronic spatial extent (au):  <R**2>=             24.9407
+ Charge=             -0.0000 electrons
+ Dipole moment (field-independent basis, Debye):
+    X=              0.0000    Y=             -0.0000    Z=              0.1358  Tot=              0.1358
+ Quadrupole moment (field-independent basis, Debye-Ang):
+   XX=             -7.1432   YY=             -8.7130   ZZ=             -8.9601
+   XY=             -0.0000   XZ=             -0.0000   YZ=              0.0000
+ Traceless Quadrupole moment (field-independent basis, Debye-Ang):
+   XX=              1.1289   YY=             -0.4409   ZZ=             -0.6880
+   XY=             -0.0000   XZ=             -0.0000   YZ=              0.0000
+ Octapole moment (field-independent basis, Debye-Ang**2):
+  XXX=              0.0000  YYY=             -0.0000  ZZZ=              3.3693  XYY=              0.0000
+  XXY=             -0.0000  XXZ=              1.0159  XZZ=              0.0000  YZZ=             -0.0000
+  YYZ=              1.7375  XYZ=              0.0000
+ Hexadecapole moment (field-independent basis, Debye-Ang**3):
+ XXXX=             -6.2985 YYYY=            -20.9961 ZZZZ=            -14.1821 XXXY=             -0.0000
+ XXXZ=             -0.0000 YYYX=             -0.0000 YYYZ=              0.0000 ZZZX=             -0.0000
+ ZZZY=              0.0000 XXYY=             -4.3379 XXZZ=             -3.3452 YYZZ=             -5.9799
+ XXYZ=              0.0000 YYXZ=             -0.0000 ZZXY=             -0.0000
+ N-N=           8.892483 E-N=        -197.229811  KE=          76.284714
+ Symmetry A1   KE=          69.736647
+ Symmetry A2   KE=           0.000000
+ Symmetry B1   KE=           2.586774
+ Symmetry B2   KE=           3.961292
+ Symmetry A1   SP=           1.000000
+ Symmetry A2   SP=           0.000000
+ Symmetry B1   SP=          -1.000000
+ Symmetry B2   SP=           0.000000
+ Orbital energies and kinetic energies (alpha):
+                                 1                 2
+   1         (A1)--O         -18.941711         29.117816
+   2         (A1)--O          -1.008637          2.712325
+   3         (A1)--O          -0.031676          1.243750
+   4         (A1)--O          -0.418533          2.354752
+   5         (B2)--O          -0.561441          1.917275
+   6         (B2)--V           0.045275          1.393264
+   7         (A1)--V           0.703089          3.353078
+   8         (A1)--V           0.808683          2.802884
+   9         (B2)--V           0.697828          2.227170
+  10         (A1)--V           1.284321          3.569204
+ Orbital energies and kinetic energies (beta):
+                                 1                 2
+   1         (A1)--O         -18.957853         29.103559
+   2         (A1)--O          -1.045427          2.828190
+   3         (B1)--O          -0.442113          2.586774
+   4         (A1)--O          -0.432838          2.376255
+   5         (B2)--O          -0.565559          2.044017
+   6         (B2)--V           0.085318          1.357863
+   7         (A1)--V           0.009219          1.214585
+   8         (B1)--V           0.681136          3.262415
+   9         (A1)--V           0.720244          3.450623
+  10         (B2)--V           0.732980          2.160189
+ Total kinetic energy from orbitals= 7.628471373500D+01
+ Leave Link  601 at Wed Feb 21 13:47:45 2024, MaxMem=  4294967296 cpu:               0.6 elap:               0.2
+ (Enter /opt/gaussian/gdv-20240213-j26+/gdv/l9999.exe)
+
+ Test job not archived.
+ 1\1\GINC-NODE12\SP\UBLYP\Gen\H2O1\ABOVILL\21-Feb-2024\4\\#P ublyp IOp(
+ 5/189=2) guess=(alter,read) chkbasis geom=check pop=orbitals=20 output
+ =(mat,AO2Electronintegrals)\\test\\0,1\O,0,-0.0199799569,0.,-0.0141279
+ 63\H,0,0.0045162424,0.,0.9748050133\H,0,0.9205603944,0.,-0.3206770502\
+ \5,6\\\Version=ES64L-GDVRevJ.26+\State=1-B1\HF=-76.0964161\S2=1.003117
+ \S2-1=0.\S2A=0.024882\RMSD=7.844e-09\PG=C02V [C2(O1),SGV(H2)]\\@
+
+
+ THE ATTENTION SPAN OF A COMPUTER IS AS LONG
+ AS ITS EXTENSION CORD.
+ RW2BAF: Writing unformatted file "h2o_dipole_ex.mat"
+ Gaussian matrix elements                                         Version   3 NLab=11 I4Labs=F I2Labs=F
+ Writ0E:  Initial coordinates match /B/.
+ Write SHELL TO ATOM MAP                   from file      0 offset           0 length                   7 to binary array file.
+ Write SHELL TYPES                         from file      0 offset           0 length                   7 to binary array file.
+ Write NUMBER OF PRIMITIVES PER SHELL      from file      0 offset           0 length                   7 to binary array file.
+ Write PRIMITIVE EXPONENTS                 from file      0 offset           0 length                  18 to binary array file.
+ Write CONTRACTION COEFFICIENTS            from file      0 offset           0 length                  18 to binary array file.
+ Write P(S=P) CONTRACTION COEFFICIENTS     from file      0 offset           0 length                  18 to binary array file.
+ Write COORDINATES OF EACH SHELL           from file      0 offset           0 length                  21 to binary array file.
+ Write BONDS PER ATOM                      from file      0 offset           0 length                   3 to binary array file.
+ Write BONDED ATOMS                        from file      0 offset           0 length                   4 to binary array file.
+ Write BOND TYPES                          from file      0 offset           0 length                   4 to binary array file.
+ Write ONIOM CHARGE/MULT                   from file      0 offset           0 length                  32 to binary array file.
+ Write ONIOM ATOM LAYERS                   from file      0 offset           0 length                   3 to binary array file.
+ Write ONIOM ATOM MODIFIERS                from file      0 offset           0 length                   3 to binary array file.
+ Write ONIOM ATOM TYPES                    from file      0 offset           0 length                   3 to binary array file.
+ Write ONIOM LINK ATOMS                    from file      0 offset           0 length                   3 to binary array file.
+ Write ONIOM LINK CHARGES                  from file      0 offset           0 length                   3 to binary array file.
+ Write ONIOM LINK DISTANCES                from file      0 offset           0 length                  12 to binary array file.
+ Write SYMINF INTEGERS                     from file      0 offset           0 length                  26 to binary array file.
+ Write ROTTR TO INPUT ORIENTATION          from file      0 offset           0 length                  12 to binary array file.
+ Write TITLE                               from file      0 offset           0 length                   1 to binary array file.
+ Write ROUTE                               from file      0 offset           0 length                  14 to binary array file.
+ Write INFO1-9                             from file      0 offset           0 length                   9 to binary array file.
+ Write METHOD                              from file      0 offset           0 length                   1 to binary array file.
+ Write BASIS NAME                          from file      0 offset           0 length                   1 to binary array file.
+ Write LINK0 COMMANDS                      from file      0 offset           0 length                  13 to binary array file.
+ Write POINT GROUP                         from file      0 offset           0 length                   2 to binary array file.
+ Write POINT GROUP DIMENSIONS              from file      0 offset           0 length                   8 to binary array file.
+ Write POINT GROUP IRREP NAMES             from file      0 offset           0 length                   4 to binary array file.
+ Write POINT GROUP CLASS NAMES             from file      0 offset           0 length                   4 to binary array file.
+ Write POINT GROUP GENERATORS              from file      0 offset           0 length                   2 to binary array file.
+ Write POINT GROUP CLASS OF OPERATORS      from file      0 offset           0 length                   4 to binary array file.
+ Write POINT GROUP ROTATIONS               from file      0 offset           0 length                  48 to binary array file.
+ Write POINT GROUP CELL TRANS              from file      0 offset           0 length                  12 to binary array file.
+ Write POINT GROUP CHAR TABLE              from file      0 offset           0 length                  16 to binary array file.
+ Write POINT GROUP ATOM PERMUTATIONS       from file      0 offset           0 length                  12 to binary array file.
+ Write ILSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write RLSW                                from file      0 offset           0 length                 100 to binary array file.
+ Write GAUSSIAN SCALARS                    from file 100501 offset           0 to binary array file.
+ Write OPTIMIZATION FLAGS                  from file      0 offset           0 length                   3 to binary array file.
+ Write INTEGER ISO                         from file      0 offset           0 length                   3 to binary array file.
+ Write INTEGER SPIN                        from file      0 offset           0 length                   3 to binary array file.
+ Write REAL ZEFFECTIVE                     from file      0 offset           0 length                   3 to binary array file.
+ Write REAL GFACTOR                        from file      0 offset           0 length                   3 to binary array file.
+ Write REAL ZNUCLEAR                       from file      0 offset           0 length                   3 to binary array file.
+ Write MULLIKEN CHARGES                    from file      0 offset           0 length                   3 to binary array file.
+ Write NUCLEAR GRADIENT                    from file      0 offset           0 length                   9 to binary array file.
+ Write NON-ADIABATIC COUPLING              from file      0 offset           0 length                   9 to binary array file.
+ Write RED INT COORD DIMS                  from file      0 offset           0 length                   4 to binary array file.
+ Write RED INT COORD ATOMS                 from file      0 offset           0 length                  12 to binary array file.
+ Write RED INT COORD VALS                  from file      0 offset           0 length                   3 to binary array file.
+ Write RED INT COORD IFLAGS                from file      0 offset           0 length                   3 to binary array file.
+ Write RED INT COORD RFLAGS                from file      0 offset           0 length                   3 to binary array file.
+ Write RED INT COORD CONSTRAINT            from file      0 offset           0 length                   6 to binary array file.
+ Write HARM CONSTRAINT C AND FC            from file      0 offset           0 length                  18 to binary array file.
+ Write FINITE EM FIELD                     from file 100521 offset           0 length                 105 to binary array file.
+ Write OVERLAP                             from file 100514 offset           0 length                  91 to binary array file.
+ Write CORE HAMILTONIAN ALPHA              from file 100515 offset           0 length                  91 to binary array file.
+ Write CORE HAMILTONIAN BETA               from file 100515 offset          91 length                  91 to binary array file.
+ Write KINETIC ENERGY                      from file 100516 offset           0 length                  91 to binary array file.
+ Write ORTHONORMAL BASIS                   from file 100685 offset           0 length                 169 to binary array file.
+ Write DIPOLE INTEGRALS                    from file 100518 offset           0 length                 273 to binary array file.
+ Write DIP VEL INTEGRALS                   from file 100572 offset           0 length                 273 to binary array file.
+ Write R X DEL INTEGRALS                   from file 100572 offset         273 length                 273 to binary array file.
+ Write R X DEL - DEL X R INTEGRALS         from file 100572 offset         546 length                 546 to binary array file.
+ Array MAGNETIC FIELD P1 (GIAO)             on  file 100696 does not exist.
+ Write ALPHA ORBITAL ENERGIES              from file      0 offset           0 length                  13 to binary array file.
+ Write BETA ORBITAL ENERGIES               from file      0 offset           0 length                  13 to binary array file.
+ Write ALPHA MO COEFFICIENTS               from file 100524 offset           0 length                 169 to binary array file.
+ Write BETA MO COEFFICIENTS                from file 100526 offset           0 length                 169 to binary array file.
+ Array SCF ORBITAL OCCUPATIONS              on  file 100861 does not exist.
+ Write ALPHA FOCK MATRIX                   from file 100536 offset           0 length                  91 to binary array file.
+ Write BETA FOCK MATRIX                    from file 100538 offset           0 length                  91 to binary array file.
+ Write ENERGY-WEIGHTED DENSITY             from file 100571 offset           0 length                  91 to binary array file.
+ Write ALPHA SCF DENSITY MATRIX            from file      0 offset           0 length                  91 to binary array file.
+ Write BETA SCF DENSITY MATRIX             from file      0 offset           0 length                  91 to binary array file.
+ Write RAFFENETTI 2E INTEGRALS             to binary array file, NR=2 ITotal=        1282.
+ Job cpu time:       0 days  0 hours  0 minutes 10.7 seconds.
+ Elapsed time:       0 days  0 hours  0 minutes  4.4 seconds.
+ File lengths (MBytes):  RWF=      6 Int=      1 D2E=      0 Chk=      2 Scr=      1
+ Normal termination of Gaussian DV at Wed Feb 21 13:47:46 2024.

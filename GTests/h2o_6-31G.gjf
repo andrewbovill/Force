@@ -1,0 +1,11 @@
+%chk=h2o_dipole_6-31G.chk
+#P 6-31G blyp geom=modela output=mat
+
+formaldehyde dipole check
+
+0 1
+o h h 
+
+h2o_dipole_6-31G.mat
+
+

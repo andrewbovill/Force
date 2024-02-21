@@ -1,0 +1,10 @@
+%chk=h2_dipole.chk
+#p uhf geom=modela output=(mat,AO2ElectronIntegrals) int=noraff 
+
+h2 dipole check
+
+0 1
+h h
+
+h2_dipole.mat
+

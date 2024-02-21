@@ -1,0 +1,10 @@
+%chk=h2o_dipole_rhf.chk
+#p hf geom=modela output=(mat,AO2ElectronIntegrals) int=noraff 
+
+h2o dipole_rhf check
+
+0 1
+o h h
+
+h2o_dipole_rhf.mat
+

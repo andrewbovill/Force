@@ -1,0 +1,10 @@
+%chk=h2o_dipole.chk
+#p ublyp geom=modela 6-31G output=(mat,AO2ElectronIntegrals) int=noraff 
+
+h2o dipole check
+
+0 1
+o h h
+
+h2o_dipole_basis.mat
+
