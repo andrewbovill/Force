@@ -38,7 +38,7 @@ INCLUDE 'force_03_mod.f03'
       real(kind=real64)::timeStart,timeEnd,test, temp_scalar
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025294
-      character(len=512)::matrixFilename
+      character(len=512)::matrixFilename1,matrixfilename2
       type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
@@ -57,7 +57,7 @@ INCLUDE 'force_03_mod.f03'
 !
 
  1000 Format(1x,'Enter Test program force_03.')
- 1010 Format(1x,'Matrix File: ',A,/)
+ 1010 Format(1x,'Matrix File ',I1,': ',A/)
  1020 Format(1x,'nAtoms    =',I4,6x,'nBasis  =',I4,6x,'nBasisUse=',I4,/,  &
              1x,'nElec=',I4,6x,'nElAlpha=',I4,6x,'nElBeta  =',I4)
  1030 Format(1x,'nMos      =',I4,6x,'nOcc    =',I4,6x,'nVirt    =',I4,/,  &
@@ -77,15 +77,16 @@ INCLUDE 'force_03_mod.f03'
 !
 !     Open the Gaussian matrix file and load the number of atomic centers.
 !
-
+ 
       nCommands = command_argument_count()
-      if(nCommands.eq.0)  &
-        call mqc_error('No command line arguments provided. The input Gaussian matrix file name is required.')
-      if(nCommands.ge.3)  &
-        call mqc_error('More than three command line arguments were provided. Only provide two')
-      call get_command_argument(1,matrixFilename)
-      call GMatrixFile1%load(matrixFilename)
-      write(IOut,1010) TRIM(matrixFilename)
+      if(nCommands.lt.2.or.nCommands.ge.3) &
+        call mqc_error('A ground state and excited state gaussian matrix file must be providedin the command line.')
+      call get_command_argument(1,matrixFilename1)
+      call get_command_argument(2,matrixFilename2)
+      call GMatrixFile1%load(matrixFilename1)
+      call GMatrixFile2%load(matrixFilename2)
+      write(IOut,1010) 1,TRIM(matrixFilename1)
+      write(IOut,1010) 2,TRIM(matrixFilename2)
       nAtoms = GMatrixFile1%getVal('nAtoms')
       nBasis = Int(GMatrixFile1%getVal('nbasis'))
       nBasisUse = Int(GMatrixFile1%getVal('nbasisuse'))
@@ -95,8 +96,6 @@ INCLUDE 'force_03_mod.f03'
       write(IOut,1020) nAtoms,nBasis,nBasisUse,nElec,  &
         nAlpha,nBeta
       write(*,*)
-      call get_command_argument(2,matrixFilename)
-      call GMatrixFile2%load(matrixFilename)
 !
 !     Check if input matrix file is restricted or unrestricted
 !
