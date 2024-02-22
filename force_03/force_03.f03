@@ -37,15 +37,16 @@ INCLUDE 'force_03_mod.f03'
 !     Andrew integer arrays for singles and doubles
       real(kind=real64)::timeStart,timeEnd,test, temp_scalar
 !     Andrew conversion factor from a.u.s to Debyes
-      real(kind=real64),parameter:: scale_debye=2.54158025294
+      real(kind=real64),parameter:: scale_debye=2.54158025
       character(len=512)::matrixFilename1,matrixfilename2
       type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff,overlap
-      type(mqc_pscf_wavefunction)::wavefunction
-      type(mqc_scf_integral),dimension(3)::dipole
+      type(mqc_scf_integral),dimension(:),allocatable::density_gs,density_ex,moCoeff_gs,moCoeff_ex,overlap
+      type(mqc_pscf_wavefunction)::wavefunction_gs,wavefunction_ex
+      type(mqc_scf_integral),dimension(3)::dipole_gs,dipole_ex,dipoleMO
+      type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
       type(mqc_matrix)::Nfi_mat
@@ -100,23 +101,27 @@ INCLUDE 'force_03_mod.f03'
 !     Check if input matrix file is restricted or unrestricted
 !
 
-allocate(moCoeff(1))
-allocate(density(1))
+allocate(moCoeff_gs(1))
+allocate(moCoeff_ex(1))
+allocate(density_gs(1))
+allocate(density_ex(1))
 
-      call GMatrixFile1%getESTObj('dipole x',est_integral=dipole(1))
-      call GMatrixFile1%getESTObj('dipole y',est_integral=dipole(2))
-      call GMatrixFile1%getESTObj('dipole z',est_integral=dipole(3))
+      call GMatrixFile1%getESTObj('dipole x',est_integral=dipole_gs(1))
+      call GMatrixFile1%getESTObj('dipole y',est_integral=dipole_gs(2))
+      call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_gs(3))
       !call GMatrixFile1%getESTObj('overlap',est_integral=overlap(1))
-      call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff(1))
-      call GMatrixFile1%getESTObj('density',est_integral=density(1))
-      call GMatrixFile1%getESTObj('wavefunction',wavefunction)
+      call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff_gs(1))
+      call GMatrixFile1%getESTObj('density',est_integral=density_gs(1))
+      call GMatrixFile1%getESTObj('wavefunction',wavefunction_gs)
+      call GMatrixFile1%get2ERIs('regular',eris_gs)
 
-      call GMatrixFile2%getESTObj('dipole x',est_integral=dipole(1))
-      call GMatrixFile2%getESTObj('dipole y',est_integral=dipole(2))
-      call GMatrixFile2%getESTObj('dipole z',est_integral=dipole(3))
-      call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff(1))
-      call GMatrixFile2%getESTObj('density',est_integral=density(1))
-      call GMatrixFile2%getESTObj('wavefunction',wavefunction)
+      call GMatrixFile1%getESTObj('dipole x',est_integral=dipole_ex(1))
+      call GMatrixFile1%getESTObj('dipole y',est_integral=dipole_ex(2))
+      call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_ex(3))
+      call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff_ex(1))
+      call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
+      call GMatrixFile2%get2ERIs('regular',eris_ex)
+
 
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
@@ -132,7 +137,7 @@ allocate(density(1))
 !
       call tdm_au%init(3)
       do j = 1,3
-         call tdm_au%put((-1)*contraction(density(1),dipole(j))+nuclear_dipole_au%at(j),j)
+         call tdm_au%put((-1)*contraction(density_gs(1),dipole_gs(j))+nuclear_dipole_au%at(j),j)
       enddo
       call tdm_au%print(iOut,'Total Dipole Moment in atomic units')
 !
@@ -144,7 +149,6 @@ allocate(density(1))
       enddo
 
       call tdm_db%print(iOut,'Total Dipole Moment in Debyes')
-
 !
 !     List of all substituted arrays one needs to calculate all the integrals
 !
@@ -154,8 +158,30 @@ allocate(density(1))
       Triple_Det = [3]
 
 !
-!     Compute integral #1 for Transition Dipole Moment
+!     Print out AO2 ERI's for ground state and excited
 !
+!     call eris_gs%print(iOut,'AO 2ERIs Ground State')
+!     call eris_ex%print(iOut,'AO 2ERIs Excited State')
+
+      call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
+      call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
+
+
+!
+!     Compute integral #1 for Transition Dipole Moment
+!     AJB feb 21 2024... Stopped here need to make trci det to feed into
+!     mqc_build_ci_hamiltonian routine.
+
+      dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
+      call trci_dets_string(iOut,iPrint,wavefunction%nBasis,wavefunction%nAlpha, &
+        Wavefunction%nBeta,isubs,determinants)
+
+      do i=1,3
+         call mqc_build_ci_hamiltonian(iOut,4,mqc_nBasis,det,&
+              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Subs2=Single_Det)
+         call CI_Dipole(i)%print(iOut,"CI Dipole")
+      enddo
+
 !     call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,determinants, &
 !       mo_overlap,UHF=UHF,CI_Hamiltonian=CI_Hamiltonian,subs=isubs,Dets2=Determinants2,&
 !       subs2=isubs2,doS2=.true.)
