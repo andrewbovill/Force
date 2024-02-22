@@ -51,8 +51,10 @@ INCLUDE 'force_03_mod.f03'
       type(mqc_matrix),dimension(3)::CI_Dipole
       type(mqc_matrix)::Nfi_mat
       type(mqc_vector)::Nfi_vec,CI_Dipole_Vec
-      type(mqc_determinant)::Singledet,Doubledet,Tripledet
-      integer(kind=int64),dimension(:),allocatable::Ref_Det,Single_Det,Double_Det,Triple_Det
+!     Andrew -- det 0,1,2,3, are dets for singles doubles and triples
+!     respectively
+      type(mqc_determinant)::det_0,det_1,det_2,det_3
+      integer(kind=int64),dimension(:),allocatable::Ref_Det,Ref_Single_Det,Single_Det,Double_Det,Triple_Det
 !
 !     Format Statements
 !
@@ -153,6 +155,7 @@ allocate(density_ex(1))
 !     List of all substituted arrays one needs to calculate all the integrals
 !
       Ref_Det = [0]
+      Ref_Single_Det = [0,1]
       Single_Det = [1]
       Double_Det = [2]
       Triple_Det = [3]
@@ -166,26 +169,27 @@ allocate(density_ex(1))
       call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
 
-
 !
 !     Compute integral #1 for Transition Dipole Moment
 !     AJB feb 21 2024... Stopped here need to make trci det to feed into
 !     mqc_build_ci_hamiltonian routine.
 
       dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
-      call trci_dets_string(iOut,iPrint,wavefunction%nBasis,wavefunction%nAlpha, &
-        Wavefunction%nBeta,isubs,determinants)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Ref_Single_Det,det_0)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Single_det,det_1)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Double_Det,det_2)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Triple_Det,det_3)
 
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,mqc_nBasis,det,&
-              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Subs2=Single_Det)
+         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
+              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Dets2=det_1,Subs=Ref_Single_Det,Subs2=Ref_Det)
          call CI_Dipole(i)%print(iOut,"CI Dipole")
       enddo
 
-!     call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,determinants, &
-!       mo_overlap,UHF=UHF,CI_Hamiltonian=CI_Hamiltonian,subs=isubs,Dets2=Determinants2,&
+!     call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det, &
+!       mo_overlap,UHF=UHF,CI_Hamiltonian=CI_Hamiltonian,subs=isubs,&
 !       subs2=isubs2,doS2=.true.)
-       
+!      
 !
 !     Compute integral #2 for Transition Dipole Moment
 !
