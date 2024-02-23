@@ -33,7 +33,7 @@ INCLUDE 'force_03_mod.f03'
       integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta, &   
         nOcc,nVirt,nMOs,nOV,nA,nB
-      integer(kind=int64)::i,j,iDetRef
+      integer(kind=int64)::i,j,iDetRef,andrew_int
 !     Andrew integer arrays for singles and doubles
       real(kind=real64)::timeStart,timeEnd,test, temp_scalar
 !     Andrew conversion factor from a.u.s to Debyes
@@ -49,8 +49,8 @@ INCLUDE 'force_03_mod.f03'
       type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole
-      type(mqc_matrix)::Nfi_mat
-      type(mqc_vector)::Nfi_vec,CI_Dipole_Vec
+      type(mqc_matrix)::Nfi_mat,temp_mqc_mat
+      type(mqc_vector)::Nfi_vec,CI_Dipole_Vec,test_vec
 !     Andrew -- det 0,1,2,3, are dets for singles doubles and triples
 !     respectively
       type(mqc_determinant)::det_0,det_1,det_2,det_3
@@ -173,18 +173,38 @@ allocate(density_ex(1))
 !     Compute integral #1 for Transition Dipole Moment
 !     AJB feb 21 2024... Stopped here need to make trci det to feed into
 !     mqc_build_ci_hamiltonian routine.
+!     Note Integral 1 contains the original dipole moment of the ground state
+!     det with itself, this will be excluded from all other integrals to avoid
+!     overcounting
 
       dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
+      write(*,*) "Det_0"
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Ref_Single_Det,det_0)
+      write(*,*) "Det_1"
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Single_det,det_1)
+      write(*,*) "Det_2",andrew_int
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Double_Det,det_2)
+      write(*,*) "Det_3"
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Triple_Det,det_3)
 
-      do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
-              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Dets2=det_1,Subs=Ref_Single_Det,Subs2=Ref_Det)
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
+      andrew_int = mqc_matrix_rows(det_1%Strings%Alpha)
+      write(*,*) "mqc_matrix_rows: ",andrew_int
+
+      write(*,*) "Det_1",andrew_int
+      andrew_int = det_2%Ndets
+      write(*,*) "Det_2",andrew_int
+      andrew_int = det_3%Ndets
+      write(*,*) "Det_3",andrew_int
+!     test_vec = det_0%strings%alpha_strings
+
+!     Nfi_vec = NO_Overlap(wavefunction_gs,density_gs(1),det_0,nBasis,nAlpha,nBeta,nOV,1)
+!     do i=1,3
+!        call mqc_build_ci_hamiltonian(iOut,0,wavefunction_gs%nBasis,det_0,&
+!             dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Dets2=det_1,Subs=Ref_Single_Det,Subs2=Ref_Det)
+!        call CI_Dipole(i)%print(iOut,"CI Dipole")
+!     enddo
+
+
 
 !     call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det, &
 !       mo_overlap,UHF=UHF,CI_Hamiltonian=CI_Hamiltonian,subs=isubs,&
