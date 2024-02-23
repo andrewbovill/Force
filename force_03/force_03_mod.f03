@@ -46,40 +46,6 @@
       
       end function dipole_expectation_value
 
-      function CI_Dipole_build(moCoeff,wavefunction,dipole,nBasis, & 
-          nElectronsAlpha,nElectronsBeta,det) result(CI_Dipole)
-
-      implicit none
-
-      type(mqc_pscf_wavefunction),intent(in)::wavefunction
-      type(mqc_scf_integral),dimension(3),intent(in)::dipole
-      type(mqc_scf_integral)::moCoeff
-      integer(kind=int64),intent(in)::nBasis,nElectronsAlpha,nElectronsBeta
-      type(mqc_matrix),dimension(3)::CI_Dipole
-      type(mqc_scf_integral),dimension(3)::dipoleMO
-      integer(kind=int64)::i,j
-      type(mqc_determinant),intent(in)::det
-      integer(kind=int64)::iPrint=4
-      integer, dimension(3) :: SingleArray = [1,2,3]
-      type(mqc_scalar)::mqc_nBasis
-
-      mqc_nBasis= nBasis
-
-!     Call trci_det_strings to get determinant, note "iPrint=4" prints alpha
-!     strings as binary representation
-
-!
-!     Transform from AO to MO basis
-!
-      dipoleMO = dipole_expectation_value(moCoeff,dipole,moCoeff)
-
-      do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,mqc_nBasis,det,&
-              dipoleMO(i),UHF=.true.,CI_Hamiltonian=CI_Dipole(i),Subs=SingleArray)
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
-      end function CI_Dipole_build
-
       subroutine SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
 
       implicit none
@@ -104,6 +70,31 @@
       endDo
 
       end subroutine SingleDet
+
+!     subroutine SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+
+!     implicit none
+!     integer::i,ii,ia,nOcc,nMOs,nVirt,nOV,iDetRef
+!     integer, dimension(nOcc*nVirt) :: iDetSingles
+
+!     iDetRef = 0
+!     do i = 0,nOcc-1
+!       iDetRef = IBSet(iDetRef,i)
+!     endDo
+!
+!     Compute the number of singles substituted determinants and then build them
+!     all in the array iDetSingles.
+!
+!     i = 0
+!     do ii = 0,nOcc-1
+!       do ia = nOcc,nMOs-1
+!         i = i + 1
+!         iDetSingles(i) = IBClr(iDetRef,ii)
+!         iDetSingles(i) = IBSet(iDetSingles(i),ia)
+!       endDo
+!     endDo
+
+!     end subroutine SingleDet
 
       subroutine det_to_swap(iDetSingle,virt,occ,nElec,nBasis)
 !
@@ -162,7 +153,7 @@
       type(mqc_determinant)::det
       integer(kind=int64),intent(in)::swap_level,nBasis,nAlpha,nBeta
       integer(kind=int64)::Nij,occ_swap,virt_swap,i
-      integer(kind=int64),dimension(nOV)::iDetSingles
+!     integer(kind=int64),dimension(nOV)::iDetSingles
 !
 !     Case statement to generate an array of singles, doubles, or triple swaps
 !     depending on input
@@ -175,8 +166,8 @@
 
       select case (swap_level)
       case (1)
-        call SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
-        call Nfi_vec%init(nOV+1)
+!       call SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+!       call Nfi_vec%init(nOV+1)
 !       do i = 1, nOV
 !         call det_to_swap(iDetSingles(i),virt_swap,occ_swap,nAlpha,nBasis)
 !         ci_density = gs_density%swap([occ_swap,virt_swap])
