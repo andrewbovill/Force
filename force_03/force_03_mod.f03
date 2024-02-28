@@ -138,7 +138,7 @@
 
       end subroutine det_to_swap
 
-      function NO_Overlap(wavefunction,gs_density,det,nBasis,nAlpha,nBeta,swap_level) result(Nfi_vec)
+      function NO_Overlap(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOV) result(Nfi_vec)
 !
 !     Returns a vector of the orthogonal elements between either singles,
 !     doubles, or triples and a reference determinant (which is either the
@@ -146,40 +146,65 @@
 !
 
       implicit none
-      type(mqc_pscf_wavefunction)::wavefunction
-      type(mqc_vector)::Nfi_vec
+      type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
+      type(mqc_vector)::Nfi_vec,aString,bString
       type(mqc_matrix)::Mij,bra_occ,ket_occ
-      type(mqc_scf_integral)::gs_density,ci_density,overlap
+      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci
       type(mqc_determinant)::det
-      integer(kind=int64),intent(in)::swap_level,nBasis,nAlpha,nBeta
-      integer(kind=int64)::Nij,occ_swap,virt_swap,i
+      integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nOV
+      integer(kind=int64)::Nij,occ_swap,virt_swap,i,swap_int
+      integer(kind=int64),intent(in),dimension(:)::Swap_Det
+      integer(kind=int64)::IPrint=1
+
 !     integer(kind=int64),dimension(nOV)::iDetSingles
 !
 !     Case statement to generate an array of singles, doubles, or triple swaps
 !     depending on input
+!     Note: Solely working for systems with 32 electrons total. Will change when
+!     working on larger systems
 !
-      overlap = wavefunction%overlap_matrix
-      bra_occ=mqc_integral_output_block(gs_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
-      Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),bra_occ)
-      Nij = abs(Mij%det())
-      call Nfi_vec%put(Nij,1)
+      overlap = wavefunction_1%overlap_matrix
+!
+!     Four cases to call to calculate 
+!     case(1) = <S|0> 
+!     case(2) = <D|0> 
+!     case(3) = <T|0> 
+!     wavefunction_1 is bra, wavefunction_2 is ket
 
-      select case (swap_level)
+      write (*,*) "nOv", nOV
+
+      select case (Swap_Det(1))
       case (1)
-!       call SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
-!       call Nfi_vec%init(nOV+1)
-!       do i = 1, nOV
-!         call det_to_swap(iDetSingles(i),virt_swap,occ_swap,nAlpha,nBasis)
-!         ci_density = gs_density%swap([occ_swap,virt_swap])
-!         ket_occ=mqc_integral_output_block(ci_density%orbitals('occupied',[nAlpha],[nBeta]),'full')
-!         Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
-!         Nij = abs(Mij%det())
-!         call Nfi_vec%put(Nij,(i+1))
-!       end do
+        !Andrew -- write statement below is for debug only, remove in final version
+        write(*,*) "Case 1 selected"
+        ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
+        call Nfi_vec%init(2*nOV)
+        do i = 1,nOV
+          call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
+          swap_int = bString%at(1)
+          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
+          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
+          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+          Nij = abs(Mij%det())
+          call Nfi_vec%put(Nij,(i))
+        end do
+        do i = nOv+1,2*nOV
+          call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
+          swap_int = aString%at(1)
+          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
+          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
+          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+          Nij = abs(Mij%det())
+          call Nfi_vec%put(Nij,(i))
+        end do
       case (2)
-!       call DoubleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+        !call DoubleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
       case (3)
-!       call TripleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+        !call TripleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
+      case (4)
+        !call TripleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
       case default
         call mqc_error('A single,double,or triple substituted determinant needs to be entered.')
       end select 
