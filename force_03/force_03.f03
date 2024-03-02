@@ -47,7 +47,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       character(len=512)::matrixFilename1,matrixfilename2
       type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
-      type(mqc_vector)::aString,bString
+      type(mqc_vector)::aString,bString,mp2_amps_gs,mp2_amps_ex
       type(MQC_Variable)::mqcTmpArray
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
@@ -67,7 +67,6 @@ INCLUDE 'force_03_mp2_mod.f03'
       integer(kind=int64),dimension(:),allocatable::Ref_Det,Ref_Single_Det,Single_Det,Double_Det,Triple_Det
       logical :: debug=.false.
       real(kind=real64),dimension(:,:,:,:),allocatable :: temp_r4tensor
-      type(mqc_r4tensor)::mp2_amps_gs,mp2_amps_ex
 !
 !     Format Statements
 !
@@ -181,6 +180,11 @@ allocate(density_ex(1))
 
       call tdm_db%print(iOut,'Total Dipole Moment in Debyes')
 
+      nMos = nBasisUse
+      nOcc = nAlpha
+      nVirt = nMOs-nOcc
+      nOV = nOcc*nVirt
+
       call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
 
@@ -192,22 +196,20 @@ allocate(density_ex(1))
 !
 !     Get MP2 Amps
 !
-      allocate(temp_r4tensor(nBasisUse,nBasisUse,nBasisUse,nBasisUse))
-      temp_r4tensor = 0
-      temp_r4tensor = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
-!     mp2_amps_gs = temp_r4tensor
-!     if (debug) then
-!       call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
-!     end if
-!     temp_r4tensor = 0
-!     temp_r4tensor = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
-!     mp2_amps_ex = temp_r4tensor
 
+      mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
+      mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
+      andrew_int =  mp2_amps_gs%size()
+      call mp2_amps_gs%print(iOut,"mp2_amps_gs values:")
+      write(*,*) "mp2_amps_gs_size", andrew_int
+      if (debug) then
+        call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
+      end if
 !
 !     List of all substituted arrays one needs to calculate all the integrals
 !
       Ref_Det = [0]
-      Ref_Single_Det = [0,2]
+      Ref_Single_Det = [0,1]
       Single_Det = [1]
       Double_Det = [2]
       Triple_Det = [3]
@@ -228,21 +230,16 @@ allocate(density_ex(1))
 !
       dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
 
-      nMos = nBasisUse
-      nOcc = nAlpha
-      nVirt = nMOs-nOcc
-      nOV = nOcc*nVirt
-
       Nfi_vec = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det,nBasis,nAlpha,nBeta,nOV)
       call Nfi_vec%print(iOut,"Non-orthogonal overlap for integral 1 <S|0>")
 !
 !     Andrew terminates printing out whole CI determinant index *bug*
 !
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_1,&
-!          dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Single_det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!        call CI_Dipole_1(i)%print(iOut,"CI Dipole")
-!     enddo
+      do i=1,3
+         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_1,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Single_det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+         call CI_Dipole_1(i)%print(iOut,"CI Dipole")
+      enddo
 
          !call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
           ! dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)

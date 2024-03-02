@@ -66,32 +66,57 @@
       end function GetE2 
       
       function GetMp2Amps(moInts,CAlpha,moEnergiesAlpha,moEnergiesBeta,nElectronsAlpha, &
-          nElectronsBeta,nBasisUse) result(temp_r4) 
+          nElectronsBeta,nBasisUse) result(mp2_amps) 
 !
 !     Obtains the mp2 amplitudes and stores in r4 mqc tensor
 !
-      type(mqc_twoERIs)::moInts
-      type(mqc_r4tensor) :: mp2_amps
+      type(mqc_twoERIs) :: moInts
+      type(mqc_vector) :: mp2_amps
+      type(mqc_scalar) :: mqc_temp
       real(kind=real64) :: deltaIJAB,temp_scalar
       real(kind=real64),dimension(:,:) :: CAlpha
       real(kind=real64),dimension(:) :: moEnergiesAlpha,moEnergiesBeta
-      integer(kind=int64) :: i,j,a,b,nElectronsAlpha,nElectronsBeta,nBasisUse
+      integer(kind=int64) :: i,j,ii,a,b,nElectronsAlpha,nElectronsBeta, &
+        nBasisUse,nOv,nVirt,nOcc,ia,ja
       real(kind=real64),dimension(:,:,:,:) :: temp_r4
 
-      do i = 1,nElectronsAlpha
-        do j = 1,nElectronsAlpha
-          do a = nElectronsAlpha+1,nBasisUse
-            do b = nElectronsAlpha+1,nBasisUse
-              deltaIJAB = moEnergiesAlpha(i) + moEnergiesAlpha(j)  &
-                - moEnergiesAlpha(a) - moEnergiesAlpha(b)
-              temp_scalar = moInts%at(i,j,a,b)/deltaIJAB
-              write(*,*) temp_scalar
-    !         temp_r4(i,j,a,b) = temp_scalar
+      nOcc = nElectronsAlpha
+      nVirt = nBasisUse - nElectronsAlpha
+      nOV = (((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))
+
+      call mp2_amps%init((((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))*2)
+
+      write(*,*) "Andrew here"
+      i = 0
+      do ii = 1,nElectronsAlpha 
+        do ia = ii+1,nElectronsAlpha
+          do j = nElectronsAlpha+1,nBasisUse
+            do ja = j+1,nBasisUse
+              i = i + 1
+              deltaIJAB = moEnergiesAlpha(ii) + moEnergiesAlpha(ia)  &
+                - moEnergiesAlpha(j) - moEnergiesAlpha(ja)
+              mqc_temp = moInts%at(ii,ia,j,ja)/deltaIJAB
+              call mp2_amps%put(mqc_temp,i)
+               != moInts%at(i,j,a,b)/deltaIJAB
             endDo
           endDo
         endDo
       endDo
 
+      i = (mp2_amps%size/2)
+      do ii = 0,nElectronsBeta
+        do ia = ii+1,nElectronsBeta-1
+          do j = nElectronsBeta+1,nBasisUse
+            do ja = nElectronsBeta+1,nBasisUse
+              i = i + 1
+              deltaIJAB = moEnergiesBeta(ii) + moEnergiesBeta(ia)  &
+                - moEnergiesBeta(j) - moEnergiesBeta(ja)
+              !call mp2_amps%put(2.0,2)
+               != moInts%at(i,j,a,b)/deltaIJAB
+            endDo
+          endDo
+        endDo
+      endDo
       end function GetMp2Amps
 
 
