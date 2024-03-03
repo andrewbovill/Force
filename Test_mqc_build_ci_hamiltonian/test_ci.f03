@@ -2,7 +2,36 @@ INCLUDE 'test_ci_mod.f03'
       program test_ci
 !     -A. J. Bovill, 2023.
 !
+!     This is to test the 'mqc_build_ci' hamiltonian routine between the latests
+!     version of mqc (as of march 3rd 2024) and a version before any updates to
+!     the mqc_build_ci hamiltonian routine in 2024
+
+!     Old commit I'm checking against is :
+!     66fb501f66a7ccd5df104250bb75b7a4c5c5adcf
+!     
+!     To test different mqc_build_ci_Hamiltonian routine, uncomment one of the
+!     many combinations I made to construct the "CI_Dipole"
+
+
+!     Bugs as of so far.
+!     1. Newest version of MQC produces a seg fault error with just a general determinant of 
+!     all possibles combinations in bra and ket (gen_det str). 
+!     gen_det_string works fine with older commit
+
+!     2. CI_Dipole print routine i.e. '|a11110b>' does not print out correctly
+!     with new version and different substitutions in bra and ket. Flush(iOut)
+!     did not work
+
+!     3. Certain combinations are not being produced. For example i can produce
+!     a vector of CI_Dipoles between the reference and all singles, but I cannot
+!     produce a matrix of the reference and singles in the bra and either the
+!     singles in the ket or say the reference and singles in the ket.
+!     Not sure if bug or inputing in incorretly.
+!    
+!     
+
 !     USE Connections
+
 !
       use test_ci_mod
 !
@@ -139,12 +168,12 @@ allocate(density(1))
 !     arguement before, CI_Hamiltonian
 
 !     Note this is to test new version of mqc_build_ci_hamiltonian
-      call wavefunction%nbasis%print(iOut,"nbasis")
-      do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i))
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
+!     call wavefunction%nbasis%print(iOut,"nbasis")
+!     do i=1,3
+!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
+!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i))
+!        call CI_Dipole(i)%print(iOut,"CI Dipole")
+!     enddo
 !     Note this is to test old version mqc_build_ci_hamiltonian
 !     call wavefunction%nbasis%print(iOut,"nbasis")
 !     do i=1,3
@@ -155,11 +184,21 @@ allocate(density(1))
 
 !     Below is the commented out CI dipole routine to manipualte to do
 !     different bras and kets
+!     This is a single reference in the bra and singles in the ket. 
+!     DOES WORK!
 !     do i=1,3
 !        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
-!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Det,Dets2=det_0,Subs2=Ref_Det,doS2=.false.)
+!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
 !        call CI_Dipole(i)%print(iOut,"CI Dipole")
 !     enddo
+
+!     This is a single reference AND singles in the bra and singles in the ket.
+!     DOES NOT WORK! (Seg fault)
+      do i=1,3
+         call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Single_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+         call CI_Dipole(i)%print(iOut,"CI Dipole")
+      enddo
 
   999 Continue
       call cpu_time(timeEnd)
