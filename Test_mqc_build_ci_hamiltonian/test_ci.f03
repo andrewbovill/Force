@@ -130,19 +130,20 @@ allocate(density(1))
       call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det_3)
       flush(iOut)
 
-      write(*,*) "Andrew here"
       dipoleMO = dipole_expectation_value(moCoeff(1),dipole,moCoeff(1))
-      write(*,*) "Andrew here 2"
 
 !
 !     Andrew terminates printing out whole CI determinant index *bug*
-!
+!     Note --- if you want to test with older version, you need UHF=.true. as an
+!     arguement before, CI_Hamiltonian
       do i=1,3
          call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_3,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),doS2=.false.)
+           dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
          call CI_Dipole(i)%print(iOut,"CI Dipole")
       enddo
 
+!     Below is the commented out CI dipole routine to manipualte to do
+!     different bras and kets
 !     do i=1,3
 !        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
 !          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Det,Dets2=det_0,Subs2=Ref_Det,doS2=.false.)
