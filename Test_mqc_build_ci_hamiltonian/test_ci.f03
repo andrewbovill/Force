@@ -9,7 +9,7 @@ INCLUDE 'test_ci_mod.f03'
 !     Variable Declarations
 !
       implicit none
-      integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
+      integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta,i,j
       real(kind=real64) ::timestart,timeend
       character(len=512)::matrixFilename
@@ -80,6 +80,7 @@ allocate(density(1))
       call GMatrixFile%getESTObj('dipole z',est_integral=dipole(3))
       call GMatrixFile%getESTObj('mo coefficients',est_integral=moCoeff(1))
       call GMatrixFile%getESTObj('scf density',est_integral=density(1))
+      call GMatrixFile%getESTObj('wavefunction',wavefunction)
 
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
@@ -136,11 +137,21 @@ allocate(density(1))
 !     Andrew terminates printing out whole CI determinant index *bug*
 !     Note --- if you want to test with older version, you need UHF=.true. as an
 !     arguement before, CI_Hamiltonian
+
+!     Note this is to test new version of mqc_build_ci_hamiltonian
+      call wavefunction%nbasis%print(iOut,"nbasis")
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_3,&
-           dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
+         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i))
          call CI_Dipole(i)%print(iOut,"CI Dipole")
       enddo
+!     Note this is to test old version mqc_build_ci_hamiltonian
+!     call wavefunction%nbasis%print(iOut,"nbasis")
+!     do i=1,3
+!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
+!          dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
+!        call CI_Dipole(i)%print(iOut,"CI Dipole")
+!     enddo
 
 !     Below is the commented out CI dipole routine to manipualte to do
 !     different bras and kets
