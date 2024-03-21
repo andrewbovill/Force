@@ -76,7 +76,7 @@ INCLUDE 'test_ci_mod.f03'
       call cpu_time(timeStart)
       write(IOut,1000)
       call mqc_version_print(iOut)
-      if(.not.mqc_version_check(newerThanMajor=22,newerThanMinor=12,newerThanRevision=1))  &
+      if(.not.mqc_version_check(newerThanMajor=24,newerThanMinor=2,newerThanRevision=2))  &
         call mqc_error('MQCPack version is too old.')
 !
 !     Open the Gaussian matrix file and load the number of atomic centers.
@@ -169,11 +169,17 @@ allocate(density(1))
 
 !     Note this is to test new version of mqc_build_ci_hamiltonian
 !     call wavefunction%nbasis%print(iOut,"nbasis")
+write (*,*) "Andrew is right"
+      call dipoleMO(1)%print(6,"checking dipoleMO 1")
+      call dipoleMO(2)%print(6,"checking dipoleMO 2")
+      call dipoleMO(3)%print(6,"checking dipoleMO 3")
+
 !     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
+!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_3,&
 !          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i))
 !        call CI_Dipole(i)%print(iOut,"CI Dipole")
 !     enddo
+write (*,*) "Andrew is wrong"
 !     Note this is to test old version mqc_build_ci_hamiltonian
 !     call wavefunction%nbasis%print(iOut,"nbasis")
 !     do i=1,3
@@ -186,19 +192,19 @@ allocate(density(1))
 !     different bras and kets
 !     This is a single reference in the bra and singles in the ket. 
 !     DOES WORK!
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
-!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!        call CI_Dipole(i)%print(iOut,"CI Dipole")
-!     enddo
+      do i=1,3
+         call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+         call CI_Dipole(i)%print(iOut,"CI Dipole")
+      enddo
 
 !     This is a single reference AND singles in the bra and singles in the ket.
 !     DOES NOT WORK! (Seg fault)
-      do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Single_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
+!     do i=1,3
+!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
+!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Single_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+!        call CI_Dipole(i)%print(iOut,"CI Dipole")
+!     enddo
 
   999 Continue
       call cpu_time(timeEnd)

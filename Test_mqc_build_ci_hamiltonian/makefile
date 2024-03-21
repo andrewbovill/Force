@@ -1,7 +1,7 @@
 #
 # This is a simple makefile for building spin-squared calculation code.
 # Specify where your MQC_directory is built
-MQCDir       = $(mqc_install)
+MQCDir       = "/home/abovill/Lousiana/mqc_install"
 MQCMODS      = $(MQCDir)/PGI/mod
 MQCLIB       = $(MQCDir)/PGI/lib
 LIBS         = -llapack -lblas -L$(MQCLIB)
