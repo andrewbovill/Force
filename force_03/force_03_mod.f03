@@ -71,31 +71,6 @@
 
       end subroutine SingleDet
 
-!     subroutine SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
-
-!     implicit none
-!     integer::i,ii,ia,nOcc,nMOs,nVirt,nOV,iDetRef
-!     integer, dimension(nOcc*nVirt) :: iDetSingles
-
-!     iDetRef = 0
-!     do i = 0,nOcc-1
-!       iDetRef = IBSet(iDetRef,i)
-!     endDo
-!
-!     Compute the number of singles substituted determinants and then build them
-!     all in the array iDetSingles.
-!
-!     i = 0
-!     do ii = 0,nOcc-1
-!       do ia = nOcc,nMOs-1
-!         i = i + 1
-!         iDetSingles(i) = IBClr(iDetRef,ii)
-!         iDetSingles(i) = IBSet(iDetSingles(i),ia)
-!       endDo
-!     endDo
-
-!     end subroutine SingleDet
-
       subroutine det_to_swap(iDetSingle,virt,occ,nElec,nBasis)
 !
 !     This routine reading from the determinant string list returns the orbitals
@@ -206,7 +181,7 @@
       case (4)
         !call TripleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
       case default
-        call mqc_error('A single,double,or triple substituted determinant needs to be entered.')
+         call mqc_error('A single,double,or triple substituted determinant needs to be entered.')
       end select 
 
       end function NO_Overlap
