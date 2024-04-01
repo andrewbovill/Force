@@ -71,15 +71,15 @@
 
       end subroutine SingleDet
 
-      subroutine det_to_swap(iDetSingle,virt,occ,nElec,nBasis)
+      subroutine det_to_swap_1(iDetIn,virt_1,occ_1,nElec,nBasis)
 !
 !     This routine reading from the determinant string list returns the orbitals
 !     to swap in the "swap" subroutine from the mqc_est_obj wavefunction
 !
 
       implicit none
-      integer(kind=int64),intent(in) :: iDetSingle,nElec,nBasis
-      integer(kind=int64) :: iDetRef,iDetSwap,i,virt,occ
+      integer(kind=int64),intent(in) :: iDetIn,nElec,nBasis
+      integer(kind=int64) :: iDetRef,iDetSwap,i,virt_1,occ_1
       logical::bit_test
 
       iDetRef = 0
@@ -90,7 +90,7 @@
 !     IDet swap turns on 1 where differences are located and 0
 !     where the reference and single determinant are the same
 !
-      iDetSwap = XOR(iDetRef,iDetSingle)
+      iDetSwap = XOR(iDetRef,iDetIn)
 !
 !     Now taking the xor and obtaining '100001' I need a routine to go through
 !     the bit and count up the swaps
@@ -99,7 +99,7 @@
       do i = 0,nElec-1  
         bit_test = BTEST(iDetSwap,i)
         if (bit_test.eqv. .true.) then
-          occ = i+1
+          occ_1 = i+1
         end if
         !write(*,*) "the position: ", i ," is on or off: ", bit_test  
       end do
@@ -107,13 +107,77 @@
       do i = nElec,nBasis-1
         bit_test = BTEST(iDetSwap,i)
         if (bit_test .eqv. .true.) then
-          virt = i+1
+          virt_1 = i+1
         end if
       end do
 
-      end subroutine det_to_swap
+      end subroutine det_to_swap_1
 
-      function NO_Overlap(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOV) result(Nfi_vec)
+      subroutine det_to_swap_2(iDetIn,virt_1,virt_2,occ_1,occ_2,nElec,nBasis)
+!
+!     This routine reading from the determinant string list returns the orbitals
+!     to swap in the "swap" subroutine from the mqc_est_obj wavefunction
+!
+
+      implicit none
+      integer(kind=int64),intent(in) :: iDetIn,nElec,nBasis
+      integer(kind=int64) :: iDetRef,iDetSwap,i,j,virt_1,virt_2,occ_1,occ_2
+      logical::bit_test
+
+      iDetRef = 0
+      do i = 0,nElec-1
+        iDetRef = IBSet(iDetRef,i)
+      endDo
+!
+!     IDet swap turns on 1 where differences are located and 0
+!     where the reference and single determinant are the same
+!
+      iDetSwap = XOR(iDetRef,iDetIn)
+!
+!     Now taking the xor and obtaining '100001' I need a routine to go through
+!     the bit and count up the swaps
+!
+      bit_test = .false.
+      do i = 0,nElec-1  
+        bit_test = BTEST(iDetSwap,i)
+        if (bit_test.eqv. .true.) then
+          occ_1 = i+1
+          do j = i+1,nElec-1 
+            bit_test = .false.
+            bit_test = BTEST(iDetSwap,j)
+              if (bit_test.eqv. .true.) then
+                occ_2 = j+1
+              end if
+          end do
+        end if
+        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      end do
+
+      do i = nElec,nBasis-1
+        bit_test = BTEST(iDetSwap,i)
+        if (bit_test.eqv. .true.) then
+          virt_1 = i+1
+          do j = i+1,nBasis-1
+            bit_test = .false.
+            bit_test = BTEST(iDetSwap,j)
+              if (bit_test.eqv. .true.) then
+                virt_2 = j+1
+              end if
+          end do
+        end if
+        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      end do
+
+      do i = nElec,nBasis-1
+        bit_test = BTEST(iDetSwap,i)
+        if (bit_test .eqv. .true.) then
+          virt_1 = i+1
+        end if
+      end do
+
+      end subroutine det_to_swap_2
+
+      function NO_Overlap(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt) result(Nfi_vec)
 !
 !     Returns a vector of the orthogonal elements between either singles,
 !     doubles, or triples and a reference determinant (which is either the
@@ -124,12 +188,18 @@
       type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
       type(mqc_vector)::Nfi_vec,aString,bString
       type(mqc_matrix)::Mij,bra_occ,ket_occ
-      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci
+      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3
       type(mqc_determinant)::det
-      integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nOV
-      integer(kind=int64)::Nij,occ_swap,virt_swap,i,swap_int
+      integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nVirt,nOcc
+      integer(kind=int64)::Nij,occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,i,swap_int,j
       integer(kind=int64),intent(in),dimension(:)::Swap_Det
       integer(kind=int64)::IPrint=1
+      integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count
+
+1090  Format(1x,"swap_int at i: ",1x,i3,"has value: ",b31)
+2080  Format(1x,"virt_swap_int 1:",1x,i3,1x,"occ_swap_int 1 value:",1x,i3)
+2090  Format(1x,"virt_swap_int 1:",1x,i3,1x,"virt_swap_int 2:",&
+  1x,i3,1x,"occ_swap_int 1 value:",1x,i3,1x,"occ_swap_int 2 value:",1x,i3)
 
 !     integer(kind=int64),dimension(nOV)::iDetSingles
 !
@@ -139,6 +209,10 @@
 !     working on larger systems
 !
       overlap = wavefunction_1%overlap_matrix
+      
+      nOV = nOcc*nVirt
+      nOV2 = (((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))
+      nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
 !
 !     Four cases to call to calculate 
 !     case(1) = <S|0> 
@@ -157,9 +231,10 @@
         do i = 1,nOV
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
-          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
-          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
-          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
+          write(*,2080) virt_swap_1,occ_swap_1
+          moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
+          bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
           Nij = abs(Mij%det())
           call Nfi_vec%put(Nij,(i))
@@ -167,9 +242,9 @@
         do i = nOv+1,2*nOV
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = aString%at(1)
-          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
-          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
-          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
+          moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
+          bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
           Nij = abs(Mij%det())
           call Nfi_vec%put(Nij,(i))
@@ -178,23 +253,27 @@
         write(*,*) "Case 2 selected"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
         call Nfi_vec%init(2*nOV)
-        do i = 1,nOV
+        do i = 1,nOV2
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
-          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
-            do i = 
-          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
-          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          write(*,*)
+          write(*,1090) i, swap_int
+          call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
+          moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
+          moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
+          write(*,2090) virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2
+          bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
           Nij = abs(Mij%det())
           call Nfi_vec%put(Nij,(i))
         end do
-        do i = nOv+1,2*nOV
+        do i = nOv2+1,2*nOV2
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = aString%at(1)
-          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
-          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
-          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
+          moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
+          moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
+          bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
           Nij = abs(Mij%det())
           call Nfi_vec%put(Nij,(i))
