@@ -37,7 +37,7 @@ INCLUDE 'force_03_mp2_mod.f03'
         nOcc,nVirt,nMOs,nOV,nA,nB
       integer(kind=int64)::i,j,iDetRef,andrew_int
 !     Andrew integer arrays for singles and doubles
-      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test
+      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test 
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025
       real(kind=real64),dimension(:), allocatable :: moEnergiesAlpha_gs,moEnergiesBeta_gs,&
@@ -47,7 +47,9 @@ INCLUDE 'force_03_mp2_mod.f03'
       character(len=512)::matrixFilename1,matrixfilename2
       type(mqc_vector)::nuclear_dipole_au,dm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,dm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
+      type(mqc_vector)::int_1,int_2,int_3,int_4 ! Integrals 1,2,3,4
       type(mqc_vector)::aString,bString,mp2_amps_gs,mp2_amps_ex
+      type(mqc_matrix):: mqc_var
       type(MQC_Variable)::mqcTmpArray
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
@@ -57,7 +59,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex,andrew_mo_ints
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole_1,CI_Dipole_2,CI_Dipole_3,CI_Dipole_4
-      type(mqc_matrix)::Nfi_mat,temp_mqc_mat
+      type(mqc_matrix)::Nfi_mat,temp_mqc_mat,temp_mqc_mat2
       type(mqc_vector)::Nfi_vec,CI_Dipole_Vec,test_vec
 !     Andrew -- det 0,1,2,3, are dets for singles doubles and triples
 !     respectively
@@ -111,6 +113,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       write(IOut,1020) nAtoms,nBasis,nBasisUse,nElec,  &
         nAlpha,nBeta
       write(*,*)
+
 !
 !     Check if input matrix file is restricted or unrestricted
 !
@@ -152,7 +155,6 @@ allocate(density_ex(1))
       write(*,*) "Andrew after reading density "
       call GMatrixFile2%get2ERIs('regular',eris_ex)
 
-
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
       call GmatrixFile1%getMolData(molData)
@@ -184,6 +186,7 @@ allocate(density_ex(1))
       nOcc = nAlpha
       nVirt = nMOs-nOcc
       nOV = nOcc*nVirt
+      write(*,*) "Andrew checking nVirt: ,",nVirt
 
       call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
@@ -230,43 +233,52 @@ allocate(density_ex(1))
       call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det_3)
       flush(iOut)
 
+      call int_1%init(3)
+      call int_2%init(3)
+      call int_3%init(3)
+      call int_4%init(3)
 !
 !     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
 !
       dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
 
-      Nfi_vec = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,Ref_Single_det,nBasis,nAlpha,nBeta,nOV)
+      Nfi_vec = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,Single_det,nBasis,nAlpha,nBeta,nOV)
       call Nfi_vec%print(iOut,"Non-orthogonal overlap for integral 1 <S|0>")
-      flush(6)
+
+      flush(iOut)
 
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Single_Det,Dets2=det_0,Subs2=Ref_Single_Det,doS2=.false.)
-         call CI_Dipole_1(i)%print(iOut,"CI Dipole")
+         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_0,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+         call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
+         test_vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
+         call int_1%put(dot_product(test_vec,Nfi_vec),i)
       enddo
-     
+
+      call int_1%print(iOut,"Contribution from integral 1")
+
 !     Compute Integral #2 <psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
 
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
+         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
            dipoleMO(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-         call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|S>")
+!        call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|S>")
       enddo
-      if(nElec.le.2 .or. nVirt.le.2) then
+      if(nElec.le.1 .or. nVirt.le.1) then
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants"
       else
         do i=1,3
-           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
+           call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
              dipoleMO(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
-           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|D>")
+!          call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|D>")
         enddo
       end if
 
 !
 !     Error handling in case triplets do not exist
 !
-      if(nElec.le.3 .or. nVirt.le.3) then
+      if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
       else 
@@ -296,4 +308,3 @@ allocate(density_ex(1))
       write(iOut,5000) 'TOTAL JOB TIME',timeEnd-timeStart
       write(iOut,8999)
       end program force_03
-
