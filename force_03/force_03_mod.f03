@@ -91,6 +91,7 @@
 !     where the reference and single determinant are the same
 !
       iDetSwap = XOR(iDetRef,iDetIn)
+      write(*,*) iDetSwap
 !
 !     Now taking the xor and obtaining '100001' I need a routine to go through
 !     the bit and count up the swaps
@@ -168,13 +169,6 @@
         !write(*,*) "the position: ", i ," is on or off: ", bit_test  
       end do
 
-      do i = nElec,nBasis-1
-        bit_test = BTEST(iDetSwap,i)
-        if (bit_test .eqv. .true.) then
-          virt_1 = i+1
-        end if
-      end do
-
       end subroutine det_to_swap_2
 
       function NO_Overlap(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt) result(Nfi_vec)
@@ -196,7 +190,7 @@
       integer(kind=int64)::IPrint=1
       integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count
 
-1090  Format(1x,"swap_int at i: ",1x,i3,"has value: ",b31)
+1090  Format(1x,"swap_int at i: ",1x,i3,1x,"has value: ",b31)
 2080  Format(1x,"virt_swap_int 1:",1x,i3,1x,"occ_swap_int 1 value:",1x,i3)
 2090  Format(1x,"virt_swap_int 1:",1x,i3,1x,"virt_swap_int 2:",&
   1x,i3,1x,"occ_swap_int 1 value:",1x,i3,1x,"occ_swap_int 2 value:",1x,i3)
@@ -232,6 +226,7 @@
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
           call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
+          write(*,1090) i, swap_int
           write(*,2080) virt_swap_1,occ_swap_1
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
