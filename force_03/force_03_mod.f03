@@ -143,30 +143,32 @@
         bit_test = BTEST(iDetSwap,i)
         if (bit_test.eqv. .true.) then
           occ_1 = i+1
-          do j = i+1,nElec-1 
-            bit_test = .false.
-            bit_test = BTEST(iDetSwap,j)
-              if (bit_test.eqv. .true.) then
-                occ_2 = j+1
-              end if
-          end do
+          exit
         end if
-        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      end do
+
+      do j = i+1,nElec-1 
+        bit_test = BTEST(iDetSwap,j)
+        if (bit_test.eqv. .true.) then
+          occ_2 = j+1
+          exit
+        end if
       end do
 
       do i = nElec,nBasis-1
         bit_test = BTEST(iDetSwap,i)
         if (bit_test.eqv. .true.) then
           virt_1 = i+1
-          do j = i+1,nBasis-1
-            bit_test = .false.
-            bit_test = BTEST(iDetSwap,j)
-              if (bit_test.eqv. .true.) then
-                virt_2 = j+1
-              end if
-          end do
+          exit
         end if
-        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      end do
+
+      do j = i+1,nBasis-1 
+        bit_test = BTEST(iDetSwap,j)
+        if (bit_test.eqv. .true.) then
+          virt_2 = j+1
+          exit
+        end if
       end do
 
       end subroutine det_to_swap_2
@@ -254,9 +256,9 @@
           write(*,*)
           write(*,1090) i, swap_int
           call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
+          write(*,2090) virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
-          write(*,2090) virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2
           bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
           Nij = abs(Mij%det())
