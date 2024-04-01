@@ -87,7 +87,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       call cpu_time(timeStart)
       write(IOut,1000)
       call mqc_version_print(iOut)
-      if(.not.mqc_version_check(newerThanMajor=22,newerThanMinor=12,newerThanRevision=1))  &
+      if(.not.mqc_version_check(newerThanMajor=24,newerThanMinor=3,newerThanRevision=0))  &
         call mqc_error('MQCPack version is too old.')
 !
 !     Open the Gaussian matrix file and load the number of atomic centers.
