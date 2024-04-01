@@ -175,6 +175,30 @@
           call Nfi_vec%put(Nij,(i))
         end do
       case (2)
+        write(*,*) "Case 2 selected"
+        ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
+        call Nfi_vec%init(2*nOV)
+        do i = 1,nOV
+          call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
+          swap_int = bString%at(1)
+          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
+            do i = 
+          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
+          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+          Nij = abs(Mij%det())
+          call Nfi_vec%put(Nij,(i))
+        end do
+        do i = nOv+1,2*nOV
+          call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
+          swap_int = aString%at(1)
+          call det_to_swap(swap_int,virt_swap,occ_swap,nAlpha,nBasis)
+          moCoeff_ci = moCoeff_1%swap([occ_swap,virt_swap])
+          bra_occ=mqc_integral_output_block(moCoeff_ci%orbitals('occupied',[nAlpha],[nBeta]),'full')
+          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+          Nij = abs(Mij%det())
+          call Nfi_vec%put(Nij,(i))
+        end do
         !call DoubleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
       case (3)
         !call TripleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
