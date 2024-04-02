@@ -55,7 +55,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       type(mqc_molecule_data)::molData
       type(mqc_scf_integral),dimension(:),allocatable::density_gs,density_ex,moCoeff_gs,moCoeff_ex,overlap
       type(mqc_pscf_wavefunction)::wavefunction_gs,wavefunction_ex
-      type(mqc_scf_integral),dimension(3)::dipole_gs,dipole_ex,dipoleMO
+      type(mqc_scf_integral),dimension(3)::dipole_gs,dipole_ex,dipoleMO_gs,dipoleMO_ex
       type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex,andrew_mo_ints
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole_1,CI_Dipole_2,CI_Dipole_3,CI_Dipole_4
@@ -82,6 +82,10 @@ INCLUDE 'force_03_mp2_mod.f03'
  2000 format(1x,a,': ',b31)
  2100 format(1x,a,1x,i5,': ',b31)
  2200 format(1x,a,1x,i5,': ',I5)
+ 3000 format(1x,"Entering integral 1",1x)
+ 3100 format(1x,"Entering integral 2",1x)
+ 3200 format(1x,"Entering integral 3",1x)
+ 3300 format(1x,"Entering integral 4",1x)
  5000 Format(1x,'Time (',A,'): ',f8.1,' s.')
  8999 Format(/,1x,'END OF program force_03.')
 !
@@ -239,7 +243,8 @@ allocate(density_ex(1))
 !
 !     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
 !
-      dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
+      dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
+      dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
 
       Nfi_vec_S0 = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
@@ -252,9 +257,10 @@ allocate(density_ex(1))
 
       flush(iOut)
 
+      write(*,3000)
       do i=1,3
          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_0,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
          !call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
          test_vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
          call int_1%put(dot_product(test_vec,Nfi_vec_S0),i)
@@ -265,9 +271,10 @@ allocate(density_ex(1))
 !     Compute Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
 !     <D|S>
 
+      write(*,3100)
       do i=1,3
         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
         call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_1(i),Nfi_vec_S0) 
         call int_2%put(dot_product(mp2_amps_gs,test_vec),i)
@@ -280,7 +287,7 @@ allocate(density_ex(1))
       else
         do i=1,3
          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
          call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|D>")
          test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_2(i),Nfi_vec_D0) 
          call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
@@ -293,10 +300,10 @@ allocate(density_ex(1))
       else 
         do i=1,3
           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_3,&
-            dipoleMO(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
-         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
-         call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
+          test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
+          call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
       end if
 
@@ -304,17 +311,26 @@ allocate(density_ex(1))
 
 !
 !     Compute Integral #3 b_mp2<psi_0|u|psi_S><psi_S|phi_D>
-!
+!     <0|S>
+      write(*,3200)
+        do i=1,3
+          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
+            dipoleMO_ex(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+          call CI_Dipole_1(i)%print(iOut,"CI Dipole <O|S>")
+         ! test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
+          !call int_3%put((dot_product(mp2_amps_gs,test_vec)),i)
+        enddo
 
 !
 !     Compute Integral #4 <psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_D>
 !
-      call tdm_ci_au%init(3)
-      do i = 1,3
-        call tdm_ci_au%put(dm_au%at(i)+int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
-        !TDM_CI_Dipole(i) = CI_Dipole_1(i)+CI_Dipole_2(i)+CI_Dipole_3(i)+CI_Dipole_4(i)
-        call tdm_ci_au%print(iOut,"TDM CI Dipole")
-      end do
+      write(*,3300)
+!     call tdm_ci_au%init(3)
+!     do i = 1,3
+!       call tdm_ci_au%put(dm_au%at(i)+int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
+!       !TDM_CI_Dipole(i) = CI_Dipole_1(i)+CI_Dipole_2(i)+CI_Dipole_3(i)+CI_Dipole_4(i)
+!       call tdm_ci_au%print(iOut,"TDM CI Dipole")
+!     end do
 
 
   999 Continue
