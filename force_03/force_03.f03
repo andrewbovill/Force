@@ -60,7 +60,7 @@ INCLUDE 'force_03_mp2_mod.f03'
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole_1,CI_Dipole_2,CI_Dipole_3,CI_Dipole_4
       type(mqc_matrix)::Nfi_mat,temp_mqc_mat,temp_mqc_mat2
-      type(mqc_vector)::Nfi_vec,CI_Dipole_Vec,test_vec
+      type(mqc_vector)::Nfi_vec_S0,Nfi_vec_D0,Nfi_vec_T0,CI_Dipole_Vec,test_vec
 !     Andrew -- det 0,1,2,3, are dets for singles doubles and triples
 !     respectively
       type(mqc_determinant)::det_0,det_1,det_2,det_3
@@ -148,11 +148,8 @@ allocate(density_ex(1))
       call GMatrixFile2%getESTObj('dipole y',est_integral=dipole_ex(2))
       call GMatrixFile2%getESTObj('dipole z',est_integral=dipole_ex(3))
       call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff_ex(1))
-      write(*,*) "Andrew checking if read scf density correctly"
       call GMatrixFile2%getESTObj('scf density',est_integral=density_ex(1))
-      write(*,*) "Andrew after reading density "
       call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
-      write(*,*) "Andrew after reading density "
       call GMatrixFile2%get2ERIs('regular',eris_ex)
 
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
@@ -204,6 +201,7 @@ allocate(density_ex(1))
       mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
       andrew_int =  mp2_amps_gs%size()
       call mp2_amps_gs%print(iOut,"mp2_amps_gs values:")
+      mp2_amps_gs = mp2_amps_gs%transpose()
       write(*,*) "mp2_amps_gs_size", andrew_int
       andrew_int =  mp2_amps_ex%size()
       call mp2_amps_ex%print(iOut,"mp2_amps_ex values:")
@@ -211,6 +209,7 @@ allocate(density_ex(1))
       if (debug) then
         call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
       end if
+      mp2_amps_ex = mp2_amps_ex%transpose()
 !
 !     List of all substituted arrays one needs to calculate all the integrals
 !
@@ -242,54 +241,69 @@ allocate(density_ex(1))
 !
       dipoleMO = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
 
-      Nfi_vec = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,Single_det,nBasis,nAlpha,nBeta,nOV)
-      call Nfi_vec%print(iOut,"Non-orthogonal overlap for integral 1 <S|0>")
+      Nfi_vec_S0 = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
+        nBasis,nAlpha,nBeta,nOcc,nVirt)
+      Nfi_vec_D0 = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
+        nBasis,nAlpha,nBeta,nOcc,nVirt)
+      Nfi_vec_T0 = NO_Overlap(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,Triple_Det, &
+        nBasis,nAlpha,nBeta,nOcc,nVirt)
+      call Nfi_vec_S0%print(iOut,"Non-orthogonal overlap for integral 1 <S|0>")
+      call Nfi_vec_D0%print(iOut,"Non-orthogonal overlap for integral 1 <D|0>")
 
       flush(iOut)
 
       do i=1,3
          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_0,&
            dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-         call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
+         !call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
          test_vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
-         call int_1%put(dot_product(test_vec,Nfi_vec),i)
+         call int_1%put(dot_product(test_vec,Nfi_vec_S0),i)
       enddo
 
       call int_1%print(iOut,"Contribution from integral 1")
 
-!     Compute Integral #2 <psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
+!     Compute Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
+!     <D|S>
 
       do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!        call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|S>")
+        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+        call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
+        test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_1(i),Nfi_vec_S0) 
+        call int_2%put(dot_product(mp2_amps_gs,test_vec),i)
       enddo
+
+!     <D|D>
       if(nElec.le.1 .or. nVirt.le.1) then
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants"
       else
         do i=1,3
-           call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-             dipoleMO(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
-!          call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|D>")
+         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
+           dipoleMO(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+         call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|D>")
+         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_2(i),Nfi_vec_D0) 
+         call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
       end if
-
-!
-!     Error handling in case triplets do not exist
-!
+!     <D|T>
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
       else 
         do i=1,3
-           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_3,&
-             dipoleMO(i),CI_Hamiltonian=CI_Dipole_4(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
-           call CI_Dipole_4(i)%print(iOut,"CI Dipole <D|T>")
+          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_3,&
+            dipoleMO(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+          call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
+         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
+         call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
       end if
+
+      call int_2%print(iOut,"Contribution from integral 2")
+
 !
-!     Compute Integral #2 <psi_0|u|psi_S><psi_S|phi_D>
+!     Compute Integral #3 b_mp2<psi_0|u|psi_S><psi_S|phi_D>
 !
 
 !
@@ -297,7 +311,7 @@ allocate(density_ex(1))
 !
       call tdm_ci_au%init(3)
       do i = 1,3
-        call tdm_ci_au%put(dm_au%at(i),i)
+        call tdm_ci_au%put(dm_au%at(i)+int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
         !TDM_CI_Dipole(i) = CI_Dipole_1(i)+CI_Dipole_2(i)+CI_Dipole_3(i)+CI_Dipole_4(i)
         call tdm_ci_au%print(iOut,"TDM CI Dipole")
       end do
