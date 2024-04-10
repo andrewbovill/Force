@@ -284,9 +284,6 @@
 !     case(3) = <T|0> 
 !     wavefunction_1 is bra, wavefunction_2 is ket
 
-      write (*,*) "nOv", nOV
-      call moCoeff_1%print(iOut,"moCoeff_1")
-
       select case (Swap_Det(1))
       case (1)
         !Andrew -- write statement below is for debug only, remove in final version
@@ -297,8 +294,6 @@
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
           call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
-          write(*,1090) i, swap_int
-          write(*,2080) virt_swap_1,occ_swap_1
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
           Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
@@ -322,10 +317,7 @@
         do i = 1,nOV2
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
-          write(*,*)
-          write(*,1090) i, swap_int
           call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
-          write(*,2090) virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
           bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
@@ -352,10 +344,7 @@
         do i = 1,nOV3
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
-          write(*,*)
-          write(*,1090) i, swap_int
           call det_to_swap_3(swap_int,virt_swap_1,virt_swap_2,virt_swap_3,occ_swap_1,occ_swap_2,occ_swap_3,nAlpha,nBasis)
-          write(*,2090) virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
           moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_3,virt_swap_3])

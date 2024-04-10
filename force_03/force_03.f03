@@ -187,7 +187,6 @@ allocate(density_ex(1))
       nOcc = nAlpha
       nVirt = nMOs-nOcc
       nOV = nOcc*nVirt
-      write(*,*) "Andrew checking nVirt: ,",nVirt
 
       call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
@@ -196,7 +195,6 @@ allocate(density_ex(1))
         E2_test = GetE2(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
         write(*,*) "E2 ", E2_test
       end if
-      write(*,*) "Andrew here here"
 !
 !     Get MP2 Amps
 !
