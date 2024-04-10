@@ -188,6 +188,9 @@ allocate(density_ex(1))
       nVirt = nMOs-nOcc
       nOV = nOcc*nVirt
 
+      write(*,*) "nOcc: ",nOcc
+      write(*,*) "nVirt: ",nVirt
+
       call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
 
@@ -245,24 +248,22 @@ allocate(density_ex(1))
       dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
       dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
 
-      write(*,*) "Andrew here (1)"
       Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
-      write(*,*) "Andrew here (2)"
       Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
-      write(*,*) "Andrew here (3)"
       Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
-      write(*,*) "Andrew here (4)"
 
-      Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,det_2,Single_det, &
+      Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,det_2,Single_det, &
         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_mat_DD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,det_2,Single_det, &
+      Nfi_mat_DD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,det_2,Double_Det, &
         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_mat_TD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,det_2,Single_det, &
+      Nfi_mat_TD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,det_2,Triple_Det, &
         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
       call Nfi_mat_SD%print(iOut,"Nfi_mat_SD matrix")
+      call Nfi_mat_DD%print(iOut,"Nfi_mat_DD matrix")
+      call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
       flush(iOut)
 
       write(*,3000)
@@ -301,17 +302,14 @@ allocate(density_ex(1))
          call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
       end if
-      write(*,*) "Andrew here (2)"
 !     <D|T>
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
       else 
         do i=1,3
-          write(*,*) "Andrew here (3)"
           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
             dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
-          write(*,*) "Andrew here (4)"
           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
           test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
           call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
@@ -348,10 +346,9 @@ allocate(density_ex(1))
         tmp_mqc_mat = matmul(CI_Dipole_1(i),Nfi_mat_SD) 
         call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat),i)
       enddo
-
+      write(*,*) "on the edge of greatness!!!"
 !     <D|D>
       if(nElec.le.1 .or. nVirt.le.1) then
-      write(*,*) "Andrew here (2)"
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants"
       else
@@ -368,7 +365,6 @@ allocate(density_ex(1))
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
-      write(*,*) "Andrew here (3)"
       else 
         do i=1,3
           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
@@ -378,7 +374,6 @@ allocate(density_ex(1))
           call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat)+int_4%at(i),i)
         enddo
       end if
-      write(*,*) "Triple's worked"
 
       call int_4%print(iOut,"Contribution from integral 4")
 

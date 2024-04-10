@@ -461,6 +461,7 @@
         end do
       case (2)
         write(*,*) "Case 2 selected"
+        write(*,*) "This is andrew... please print out size properly: ",nOv2
         call Nfi_mat%init(2*nOV2,2*nOV2)
         do i = 1,nOV2
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_bra,Swap_Det_Bra)
@@ -502,8 +503,10 @@
         end do
       case (3)
         write(*,*) "Case 3 selected"
-        call Nfi_mat%init(2*nOV3,2*nOV2)
+        write(*,*) "DAWGS this is nOV3!: ",nOV3
+        call Nfi_mat%init(2*nOV3,2*nOV3)
         do i = 1,nOV3
+          write(*,*) "Andrew vibe check 1"
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_bra,Swap_Det_Bra)
           swap_int = bString%at(1)
           call det_to_swap_3(swap_int,virt_swap_1,virt_swap_2,virt_swap_3,occ_swap_1,occ_swap_2,occ_swap_3,nAlpha,nBasis)
@@ -512,6 +515,7 @@
           moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_2,virt_swap_2])
           bra_occ=mqc_integral_output_block(moCoeff_ci_3%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = 1,nOV2
+            write(*,*) "Andrew vibe check 2"
             call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = bString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
