@@ -139,7 +139,7 @@ allocate(density_ex(1))
       call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_gs(3))
       !call GMatrixFile1%getESTObj('overlap',est_integral=overlap(1))
       call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff_gs(1))
-      call GMatrixFile1%getESTObj('scf density',est_integral=density_gs(1))
+      call GMatrixFile1%getESTObj('density',est_integral=density_gs(1))
       call GMatrixFile1%getESTObj('wavefunction',wavefunction_gs)
       call GMatrixFile1%get2ERIs('regular',eris_gs)
 
@@ -229,10 +229,10 @@ allocate(density_ex(1))
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Ref_Single_Det,det_0)
       write(*,*) "Det_1"
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Single_det,det_1)
-      write(*,*) "Det_2",andrew_int
+      write(*,*) "Det_2"
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Double_Det,det_2)
       write(*,*) "Det_3"
-      call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det_3)
+      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Triple_Det,det_3)
       flush(iOut)
 
       call int_1%init(3)
@@ -245,12 +245,16 @@ allocate(density_ex(1))
       dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
       dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
 
+      write(*,*) "Andrew here (1)"
       Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
+      write(*,*) "Andrew here (2)"
       Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
+      write(*,*) "Andrew here (3)"
       Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
+      write(*,*) "Andrew here (4)"
 
       Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_0,det_2,Single_det, &
         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
@@ -297,16 +301,18 @@ allocate(density_ex(1))
          call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
       end if
+      write(*,*) "Andrew here (2)"
 !     <D|T>
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
       else 
         do i=1,3
-          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_3,&
-            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+          write(*,*) "Andrew here (3)"
+          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
+            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
+          write(*,*) "Andrew here (4)"
           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
-          test_vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
           test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
           call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
         enddo
@@ -345,6 +351,7 @@ allocate(density_ex(1))
 
 !     <D|D>
       if(nElec.le.1 .or. nVirt.le.1) then
+      write(*,*) "Andrew here (2)"
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants"
       else
@@ -361,15 +368,17 @@ allocate(density_ex(1))
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triply &
           substituted determinants"
+      write(*,*) "Andrew here (3)"
       else 
         do i=1,3
-          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_3,&
-            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Triple_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
+          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
+            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
           tmp_mqc_mat = matmul(CI_Dipole_3(i),Nfi_mat_TD) 
           call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat)+int_4%at(i),i)
         enddo
       end if
+      write(*,*) "Triple's worked"
 
       call int_4%print(iOut,"Contribution from integral 4")
 

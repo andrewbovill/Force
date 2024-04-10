@@ -312,10 +312,14 @@
         end do
       case (2)
         write(*,*) "Case 2 selected"
+        write(*,*) "Andrew inside mod"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
         call Nfi_vec%init(2*nOV2)
         do i = 1,nOV2
+          write(*,*) "Andrew inside mod do first"
+          write(*,*) "what the hell is i?", i
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
+          write(*,*) "Andrew after mqc_getstringindex do first"
           swap_int = bString%at(1)
           call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
