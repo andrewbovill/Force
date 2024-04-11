@@ -91,7 +91,6 @@
 !     where the reference and single determinant are the same
 !
       iDetSwap = XOR(iDetRef,iDetIn)
-      write(*,*) iDetSwap
 !
 !     Now taking the xor and obtaining '100001' I need a routine to go through
 !     the bit and count up the swaps
@@ -286,6 +285,7 @@
 
       select case (Swap_Det(1))
       case (1)
+        write(*,*) "bug #1"
         !Andrew -- write statement below is for debug only, remove in final version
         write(*,*) "Case 1 selected"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
@@ -311,15 +311,12 @@
           call Nfi_vec%put(Nij,(i))
         end do
       case (2)
+        write(*,*) "bug #2"
         write(*,*) "Case 2 selected"
-        write(*,*) "Andrew inside mod"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
         call Nfi_vec%init(2*nOV2)
         do i = 1,nOV2
-          write(*,*) "Andrew inside mod do first"
-          write(*,*) "what the hell is i?", i
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
-          write(*,*) "Andrew after mqc_getstringindex do first"
           swap_int = bString%at(1)
           call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
@@ -393,9 +390,9 @@
       type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3
       type(mqc_determinant)::det_bra,det_ket
       integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nVirt,nOcc
-      integer(kind=int64)::Nij,occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int,j
+      integer(kind=int64)::Nij,occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int,j,k
       integer(kind=int64),intent(in),dimension(:)::Swap_Det_Bra,Swap_Det_Ket
-      integer(kind=int64)::IPrint=1
+      integer(kind=int64)::IPrint=1,input
       integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count
 
 1090  Format(1x,"swap_int at i: ",1x,i3,1x,"has value: ",b31)
@@ -404,7 +401,7 @@
   1x,i3,1x,"occ_swap_int 1 value:",1x,i3,1x,"occ_swap_int 2 value:",1x,i3)
 
       overlap = wavefunction_1%overlap_matrix
-      
+            
       nOV = nOcc*nVirt
       nOV2 = (((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))
       nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
@@ -414,9 +411,6 @@
 !     case(2) = <D|D> 
 !     case(3) = <T|D> 
 !     wavefunction_1 is bra, wavefunction_2 is ket
-
-      write (*,*) "nOv", nOV
-      call moCoeff_1%print(iOut,"moCoeff_1")
 
       select case (Swap_Det_Bra(1))
       case (1)
@@ -430,7 +424,7 @@
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = 1,nOV2
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = bString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])
@@ -448,7 +442,7 @@
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = nOv2+1,2*nOV2
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = aString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])
@@ -461,7 +455,6 @@
         end do
       case (2)
         write(*,*) "Case 2 selected"
-        write(*,*) "This is andrew... please print out size properly: ",nOv2
         call Nfi_mat%init(2*nOV2,2*nOV2)
         do i = 1,nOV2
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_bra,Swap_Det_Bra)
@@ -471,7 +464,7 @@
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
           bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = 1,nOV2
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = bString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])
@@ -490,7 +483,7 @@
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
           bra_occ=mqc_integral_output_block(moCoeff_ci_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = nOv2+1,2*nOV2
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = aString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])
@@ -503,20 +496,17 @@
         end do
       case (3)
         write(*,*) "Case 3 selected"
-        write(*,*) "DAWGS this is nOV3!: ",nOV3
-        call Nfi_mat%init(2*nOV3,2*nOV3)
+        call Nfi_mat%init(2*nOV3,2*nOV2)
         do i = 1,nOV3
-          write(*,*) "Andrew vibe check 1"
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_bra,Swap_Det_Bra)
           swap_int = bString%at(1)
           call det_to_swap_3(swap_int,virt_swap_1,virt_swap_2,virt_swap_3,occ_swap_1,occ_swap_2,occ_swap_3,nAlpha,nBasis)
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
-          moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_2,virt_swap_2])
+          moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_3,virt_swap_3])
           bra_occ=mqc_integral_output_block(moCoeff_ci_3%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = 1,nOV2
-            write(*,*) "Andrew vibe check 2"
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = bString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])
@@ -533,10 +523,10 @@
           call det_to_swap_3(swap_int,virt_swap_1,virt_swap_2,virt_swap_3,occ_swap_1,occ_swap_2,occ_swap_3,nAlpha,nBasis)
           moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
           moCoeff_ci_2 = moCoeff_ci_1%swap([occ_swap_2,virt_swap_2])
-          moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_2,virt_swap_2])
+          moCoeff_ci_3 = moCoeff_ci_2%swap([occ_swap_3,virt_swap_3])
           bra_occ=mqc_integral_output_block(moCoeff_ci_3%orbitals('occupied',[nAlpha],[nBeta]),'full')
           do j = nOv2+1,2*nOV2
-            call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
+            call mqc_get_strings_at_index(iOut,iPrint,j,aString,bString,wavefunction_1%nBasis,det_ket,Swap_Det_Ket)
             swap_int = aString%at(1)
             call det_to_swap_2(swap_int,virt_swap_1,virt_swap_2,occ_swap_1,occ_swap_2,nAlpha,nBasis)
             moCoeff_ci_1 = moCoeff_2%swap([occ_swap_1,virt_swap_1])

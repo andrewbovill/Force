@@ -201,7 +201,6 @@ allocate(density_ex(1))
 !
 !     Get MP2 Amps
 !
-
       mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
       mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
       andrew_int =  mp2_amps_gs%size()
@@ -250,21 +249,45 @@ allocate(density_ex(1))
 
       Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
-        nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
-        nBasis,nAlpha,nBeta,nOcc,nVirt)
+      if(nElec.le.1 .or. nVirt.le.1) then
+        write(*,*) "Not enough virtual or occupied orbitals for double &
+          substituted determinants ... skipping"
+      else
+        Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
+          nBasis,nAlpha,nBeta,nOcc,nVirt)
+      end if
+      if(nElec.le.2 .or. nVirt.le.2) then
+        write(*,*) "Not enough virtual or occupied orbitals for triple &
+          substituted determinants ... skipping"
+      else
+        Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
+          nBasis,nAlpha,nBeta,nOcc,nVirt)
+      end if
+      write(*,*) "Orthogonal vectors all good"
 
-      Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,det_2,Single_det, &
-        Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_mat_DD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,det_2,Double_Det, &
-        Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-      Nfi_mat_TD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,det_2,Triple_Det, &
-        Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-      call Nfi_mat_SD%print(iOut,"Nfi_mat_SD matrix")
-      call Nfi_mat_DD%print(iOut,"Nfi_mat_DD matrix")
-      call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
+      if(nElec.le.1 .or. nVirt.le.1) then
+        write(*,*) "Not enough virtual or occupied orbitals for double &
+          substituted determinants ... skipping"
+      else
+        Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,det_2,Single_det, &
+          Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
+        call Nfi_mat_SD%print(iOut,"Nfi_mat_SD matrix")
+        Nfi_mat_DD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,det_2,Double_Det, &
+          Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
+        call Nfi_mat_DD%print(iOut,"Nfi_mat_DD matrix")
+      end if
+      write(*,*) "Matrix orhtonagkjrn all good"
+
+      if(nElec.le.2 .or. nVirt.le.2) then
+        write(*,*) "Not enough virtual or occupied orbitals for triple &
+          substituted determinants ... skipping"
+      else
+        Nfi_mat_TD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,det_2,Triple_Det, &
+          Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
+        call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
+      end if
       flush(iOut)
+      write(*,*) "Leviticus 4:20  orhtonagkjrn all good"
 
       write(*,3000)
       do i=1,3
@@ -382,7 +405,6 @@ allocate(density_ex(1))
         call tdm_ci_au%put(dm_au%at(i)+int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
         call tdm_ci_au%print(iOut,"TDM CI Dipole")
       end do
-
 
   999 Continue
       call cpu_time(timeEnd)
