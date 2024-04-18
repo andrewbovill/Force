@@ -285,8 +285,6 @@
 
       select case (Swap_Det(1))
       case (1)
-        write(*,*) "bug #1"
-        !Andrew -- write statement below is for debug only, remove in final version
         write(*,*) "Case 1 selected"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
         call Nfi_vec%init(2*nOV)
@@ -311,7 +309,6 @@
           call Nfi_vec%put(Nij,(i))
         end do
       case (2)
-        write(*,*) "bug #2"
         write(*,*) "Case 2 selected"
         ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
         call Nfi_vec%init(2*nOV2)

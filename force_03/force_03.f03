@@ -152,7 +152,7 @@ allocate(density_ex(1))
       call GMatrixFile2%getESTObj('dipole y',est_integral=dipole_ex(2))
       call GMatrixFile2%getESTObj('dipole z',est_integral=dipole_ex(3))
       call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff_ex(1))
-      call GMatrixFile2%getESTObj('scf density',est_integral=density_ex(1))
+      call GMatrixFile2%getESTObj('density',est_integral=density_ex(1))
       call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
       call GMatrixFile2%get2ERIs('regular',eris_ex)
 
@@ -276,7 +276,6 @@ allocate(density_ex(1))
           Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
         call Nfi_mat_DD%print(iOut,"Nfi_mat_DD matrix")
       end if
-      write(*,*) "Matrix orhtonagkjrn all good"
 
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triple &
@@ -287,7 +286,6 @@ allocate(density_ex(1))
         call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
       end if
       flush(iOut)
-      write(*,*) "Leviticus 4:20  orhtonagkjrn all good"
 
       write(*,3000)
       do i=1,3
