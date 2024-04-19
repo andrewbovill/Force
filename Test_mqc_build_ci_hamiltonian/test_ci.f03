@@ -41,21 +41,28 @@ INCLUDE 'test_ci_mod.f03'
       integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta,i,j
       real(kind=real64) ::timestart,timeend
-      character(len=512)::matrixFilename
-      type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile
+      character(len=512)::matrixFilename1,matrixFilename2
+      type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
       type(mqc_scf_integral),dimension(:),allocatable::density,moCoeff
       real(kind=real64),parameter:: scale_debye=2.54158025
       type(mqc_vector)::nuclear_dipole_au,tdm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,tdm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
-      type(mqc_pscf_wavefunction)::wavefunction
+      type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
       type(mqc_scf_integral),dimension(3)::dipole,dipoleMO
+      type(mqc_scf_integral)::overlap,moCoeff_swap
       type(mqc_matrix),dimension(3)::CI_Dipole
+      type(mqc_matrix)::Nfi_mat_SD,Nfi_mat_DD,Nfi_mat_TD,Mij
+      type(mqc_matrix)::bra_occ,ket_occ
+      type(mqc_vector)::Nfi_vec_S0,Nfi_vec_D0,Nfi_vec_T0,CI_Dipole_Vec,test_vec
+      type(mqc_scalar)::Nij
 !     Different determinant strings for different combinations to feed into
 !     MQC_Build_CI Hamiltonian routine and trci_det_strings.
       type(mqc_determinant)::det_0,det_1,det_2,det_3
       integer(kind=int64),dimension(:),allocatable::Ref_Det,Ref_Single_Det,Single_Det,Double_Det,Triple_Det
       logical :: debug=.false.
+      type(mqc_vector)::aString,bString
+      real(kind=real64)::temp
 !
 !     Format Statements
 !
@@ -83,17 +90,22 @@ INCLUDE 'test_ci_mod.f03'
 !
  
       nCommands = command_argument_count()
-      if(nCommands.lt.1.or.nCommands.ge.2) &
-        call mqc_error('Only one matrix file is inputted.')
-      call get_command_argument(1,matrixFilename)
-      call GMatrixFile%load(matrixFilename)
-      write(IOut,1010) 1,TRIM(matrixFilename)
-      nAtoms = GMatrixFile%getVal('nAtoms')
-      nBasis = Int(GMatrixFile%getVal('nbasis'))
-      nBasisUse = Int(GMatrixFile%getVal('nbasisuse'))
-      nElec = Int(GMatrixFile%getVal('nelectrons'))
-      nAlpha = Int(GMatrixFile%getVal('nAlpha'))
-      nBeta = Int(GMatrixFile%getVal('nBeta'))
+      if(nCommands.lt.2.or.nCommands.ge.3) &
+        call mqc_error('Only 2 matrix file is inputted.')
+      call get_command_argument(1,matrixFilename1)
+      call get_command_argument(2,matrixFilename2)
+      call GMatrixFile1%load(matrixFilename1)
+      write(IOut,1010) 1,TRIM(matrixFilename1)
+      write(*,*) "Issues"
+      call GMatrixFile2%load(matrixFilename2)
+      write(IOut,1010) 2,TRIM(matrixFilename2)
+
+      nAtoms = GMatrixFile1%getVal('nAtoms')
+      nBasis = Int(GMatrixFile1%getVal('nbasis'))
+      nBasisUse = Int(GMatrixFile1%getVal('nbasisuse'))
+      nElec = Int(GMatrixFile1%getVal('nelectrons'))
+      nAlpha = Int(GMatrixFile1%getVal('nAlpha'))
+      nBeta = Int(GMatrixFile1%getVal('nBeta'))
       write(IOut,1020) nAtoms,nBasis,nBasisUse,nElec,  &
         nAlpha,nBeta
       write(*,*)
@@ -101,19 +113,22 @@ INCLUDE 'test_ci_mod.f03'
 !     Check if input matrix file is restricted or unrestricted
 !
 
-allocate(moCoeff(1))
-allocate(density(1))
+allocate(moCoeff(2))
+allocate(density(2))
 
-      call GMatrixFile%getESTObj('dipole x',est_integral=dipole(1))
-      call GMatrixFile%getESTObj('dipole y',est_integral=dipole(2))
-      call GMatrixFile%getESTObj('dipole z',est_integral=dipole(3))
-      call GMatrixFile%getESTObj('mo coefficients',est_integral=moCoeff(1))
-      call GMatrixFile%getESTObj('scf density',est_integral=density(1))
-      call GMatrixFile%getESTObj('wavefunction',wavefunction)
+      call GMatrixFile1%getESTObj('dipole x',est_integral=dipole(1))
+      call GMatrixFile1%getESTObj('dipole y',est_integral=dipole(2))
+      call GMatrixFile1%getESTObj('dipole z',est_integral=dipole(3))
+      call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff(1))
+      call GMatrixFile1%getESTObj('scf density',est_integral=density(1))
+      call GMatrixFile1%getESTObj('wavefunction',wavefunction_1)
 
+      call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff(2))
+      call GMatrixFile2%getESTObj('scf density',est_integral=density(2))
+      call GMatrixFile2%getESTObj('wavefunction',wavefunction_2)
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
-      call GmatrixFile%getMolData(molData)
+      call GmatrixFile1%getMolData(molData)
 !
 !     Obtain nuclear dipole moment, classical component of total dipole moment.
 !
@@ -151,60 +166,34 @@ allocate(density(1))
 
       flush(iOut)
       write(*,*) "Det_0"
-      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Ref_Single_Det,det_0)
+      call trci_dets_string(iOut,0,nBasis,nAlpha,nBeta,Ref_Single_Det,det_0)
       write(*,*) "Det_1"
-      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Single_det,det_1)
+      call trci_dets_string(iOut,0,nBasis,nAlpha,nBeta,Single_det,det_1)
       write(*,*) "Det_2"
-      call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Double_Det,det_2)
+      call trci_dets_string(iOut,0,nBasis,nAlpha,nBeta,Double_Det,det_2)
       write(*,*) "Det_3"
-      call gen_det_str(iOut,4,nBasis,nAlpha,nBeta,det_3)
+      call trci_dets_string(iOut,0,nBasis,nAlpha,nBeta,Triple_Det,det_3)
       flush(iOut)
+          
+     !  To check overlap between same dets 
+      overlap = wavefunction_1%overlap_matrix
+      bra_occ=mqc_integral_output_block(moCoeff(1)%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      ket_occ=mqc_integral_output_block(moCoeff(1)%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+      Nij = abs(Mij%det())
+      temp = Nij
+      write(*,*) "God check the overlap!: ", temp
 
-      dipoleMO = dipole_expectation_value(moCoeff(1),dipole,moCoeff(1))
-
-!
-!     Andrew terminates printing out whole CI determinant index *bug*
-!     Note --- if you want to test with older version, you need UHF=.true. as an
-!     arguement before, CI_Hamiltonian
-
-!     Note this is to test new version of mqc_build_ci_hamiltonian
-!     call wavefunction%nbasis%print(iOut,"nbasis")
-write (*,*) "Andrew is right"
-      call dipoleMO(1)%print(6,"checking dipoleMO 1")
-      call dipoleMO(2)%print(6,"checking dipoleMO 2")
-      call dipoleMO(3)%print(6,"checking dipoleMO 3")
-
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_3,&
-!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i))
-!        call CI_Dipole(i)%print(iOut,"CI Dipole")
-!     enddo
-write (*,*) "Andrew is wrong"
-!     Note this is to test old version mqc_build_ci_hamiltonian
-!     call wavefunction%nbasis%print(iOut,"nbasis")
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction%nBasis,det_3,&
-!          dipoleMO(i),UHF=.false.,CI_Hamiltonian=CI_Dipole(i))
-!        call CI_Dipole(i)%print(iOut,"CI Dipole")
-!     enddo
-
-!     Below is the commented out CI dipole routine to manipualte to do
-!     different bras and kets
-!     This is a single reference in the bra and singles in the ket. 
-!     DOES WORK!
-      do i=1,3
-         call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
-           dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-         call CI_Dipole(i)%print(iOut,"CI Dipole")
-      enddo
-
-!     This is a single reference AND singles in the bra and singles in the ket.
-!     DOES NOT WORK! (Seg fault)
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,4,wavefunction%nBasis,det_0,&
-!          dipoleMO(i),CI_Hamiltonian=CI_Dipole(i),Subs=Ref_Single_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!        call CI_Dipole(i)%print(iOut,"CI Dipole")
-!     enddo
+      temp = 0.0
+     !  To check overlap between different dets 
+      overlap = wavefunction_1%overlap_matrix
+      bra_occ=mqc_integral_output_block(moCoeff(1)%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      moCoeff_swap = moCoeff(2)%swap([1,2])
+      ket_occ=mqc_integral_output_block(moCoeff_swap%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+      Nij = abs(Mij%det())
+      temp = Nij
+      write(*,*) "God check the overlap must be different!: ", temp
 
   999 Continue
       call cpu_time(timeEnd)
