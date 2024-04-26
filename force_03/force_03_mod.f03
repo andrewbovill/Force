@@ -261,7 +261,8 @@
       type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3
       type(mqc_determinant)::det
       integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nVirt,nOcc
-      integer(kind=int64)::Nij,occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int
+      integer(kind=int64)::occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int
+      real(kind=real64)::Nij
       integer(kind=int64),intent(in),dimension(:)::Swap_Det
       integer(kind=int64)::IPrint=1
       integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count
@@ -387,7 +388,8 @@
       type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3
       type(mqc_determinant)::det_bra,det_ket
       integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nVirt,nOcc
-      integer(kind=int64)::Nij,occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int,j,k
+      integer(kind=int64)::occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int,j,k
+      real(kind=real64)::Nij
       integer(kind=int64),intent(in),dimension(:)::Swap_Det_Bra,Swap_Det_Ket
       integer(kind=int64)::IPrint=1,input
       integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count

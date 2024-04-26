@@ -32,7 +32,7 @@ INCLUDE 'force_03_mp2_mod.f03'
 !     Variable Declarations
 !
       implicit none
-      integer(kind=int64)::nCommands,iPrint=0,nAtoms,nBasis, &
+      integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta, &   
         nOcc,nVirt,nMOs,nOV,nA,nB
       integer(kind=int64)::i,j,iDetRef,andrew_int
@@ -49,7 +49,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       type(mqc_vector)::nuclear_dipole_db,dm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_vector)::int_1,int_2,int_3,int_4 ! Integrals 1,2,3,4
       type(mqc_vector)::aString,bString,mp2_amps_gs,mp2_amps_ex
-      type(mqc_matrix):: mp2_mat,tmp_mqc_mat
+      type(mqc_matrix):: mp2_mat,tmp_mqc_mat,Mij,bra_occ,ket_occ
       type(MQC_Variable)::mqcTmpArray
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
@@ -139,7 +139,7 @@ allocate(density_ex(1))
       call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_gs(3))
       !call GMatrixFile1%getESTObj('overlap',est_integral=overlap(1))
       call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff_gs(1))
-      call GMatrixFile1%getESTObj('density',est_integral=density_gs(1))
+      call GMatrixFile1%getESTObj('scf density',est_integral=density_gs(1))
       call GMatrixFile1%getESTObj('wavefunction',wavefunction_gs)
       call GMatrixFile1%get2ERIs('regular',eris_gs)
 
@@ -152,7 +152,7 @@ allocate(density_ex(1))
       call GMatrixFile2%getESTObj('dipole y',est_integral=dipole_ex(2))
       call GMatrixFile2%getESTObj('dipole z',est_integral=dipole_ex(3))
       call GMatrixFile2%getESTObj('mo coefficients',est_integral=moCoeff_ex(1))
-      call GMatrixFile2%getESTObj('density',est_integral=density_ex(1))
+      call GMatrixFile2%getESTObj('scf density',est_integral=density_ex(1))
       call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
       call GMatrixFile2%get2ERIs('regular',eris_ex)
 
@@ -191,8 +191,8 @@ allocate(density_ex(1))
       write(*,*) "nOcc: ",nOcc
       write(*,*) "nVirt: ",nVirt
 
-      call twoERI_trans(iOut,iPrint,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
-      call twoERI_trans(iOut,iPrint,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
+      call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
+      call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
 
       if (debug) then
         E2_test = GetE2(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
@@ -246,15 +246,19 @@ allocate(density_ex(1))
 !
       dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
       dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
+      
+      write(*,*) "Andrew debug April 25th"
 
       Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
         nBasis,nAlpha,nBeta,nOcc,nVirt)
+      call Nfi_vec_S0%print(iOut,"Nfi_vec_S0 vector")
       if(nElec.le.1 .or. nVirt.le.1) then
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants ... skipping"
       else
         Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
           nBasis,nAlpha,nBeta,nOcc,nVirt)
+        call Nfi_vec_D0%print(iOut,"Nfi_vec_D0 vector")
       end if
       if(nElec.le.2 .or. nVirt.le.2) then
         write(*,*) "Not enough virtual or occupied orbitals for triple &
@@ -262,6 +266,7 @@ allocate(density_ex(1))
       else
         Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
           nBasis,nAlpha,nBeta,nOcc,nVirt)
+        call Nfi_vec_T0%print(iOut,"Nfi_vec_T0 vector")
       end if
       write(*,*) "Orthogonal vectors all good"
 
@@ -291,7 +296,7 @@ allocate(density_ex(1))
       do i=1,3
          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_0,&
            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-         !call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
+         call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
          CI_Dipole_Vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
          call int_1%put(dot_product(CI_Dipole_Vec,Nfi_vec_S0),i)
       enddo
@@ -388,7 +393,7 @@ allocate(density_ex(1))
           substituted determinants"
       else 
         do i=1,3
-          call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
+          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
             dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
           call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
           tmp_mqc_mat = matmul(CI_Dipole_3(i),Nfi_mat_TD) 
