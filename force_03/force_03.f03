@@ -35,16 +35,15 @@ INCLUDE 'force_03_mp2_mod.f03'
       integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta, &   
         nOcc,nVirt,nMOs,nOV,nA,nB
-      integer(kind=int64)::i,j,iDetRef,andrew_int
+      integer(kind=int64)::i,j,iDetRef
 !     Andrew integer arrays for singles and doubles
-      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test 
+      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test,Nij
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025
       real(kind=real64),dimension(:), allocatable :: moEnergiesAlpha_gs,moEnergiesBeta_gs,&
         moEnergiesAlpha_ex,moEnergiesBeta_ex
       real(kind=real64),dimension(:,:),allocatable::CAlpha,CBeta
-      real(kind=real64),dimension(:,:,:,:) :: MO_MP2_AMPS_gs,MO_MP2_AMPS_ex
-      character(len=512)::matrixFilename1,matrixfilename2
+      character(len=512)::matrixFilename1,matrixFilename2
       type(mqc_vector)::nuclear_dipole_au,dm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,dm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_vector)::int_1,int_2,int_3,int_4 ! Integrals 1,2,3,4
@@ -56,7 +55,7 @@ INCLUDE 'force_03_mp2_mod.f03'
       type(mqc_scf_integral),dimension(:),allocatable::density_gs,density_ex,moCoeff_gs,moCoeff_ex,overlap
       type(mqc_pscf_wavefunction)::wavefunction_gs,wavefunction_ex
       type(mqc_scf_integral),dimension(3)::dipole_gs,dipole_ex,dipoleMO_gs,dipoleMO_ex
-      type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex,andrew_mo_ints
+      type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex
 !     Andrew --Holds CI_Dipole_moment matrix
       type(mqc_matrix),dimension(3)::CI_Dipole_1,CI_Dipole_2,CI_Dipole_3,CI_Dipole_4
       type(mqc_matrix)::Nfi_mat_SD,Nfi_mat_DD,Nfi_mat_TD
@@ -64,11 +63,8 @@ INCLUDE 'force_03_mp2_mod.f03'
 !     Andrew -- det 0,1,2,3, are dets for singles doubles and triples
 !     respectively
       type(mqc_determinant)::det_0,det_1,det_2,det_3
-!     Andrew -- debug scalar
-      type(mqc_scalar) :: andrew_hold
       integer(kind=int64),dimension(:),allocatable::Ref_Det,Ref_Single_Det,Single_Det,Double_Det,Triple_Det
       logical :: debug=.false.
-      real(kind=real64),dimension(:,:,:,:),allocatable :: temp_r4tensor
 !
 !     Format Statements
 !
@@ -137,7 +133,6 @@ allocate(density_ex(1))
       call GMatrixFile1%getESTObj('dipole x',est_integral=dipole_gs(1))
       call GMatrixFile1%getESTObj('dipole y',est_integral=dipole_gs(2))
       call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_gs(3))
-      !call GMatrixFile1%getESTObj('overlap',est_integral=overlap(1))
       call GMatrixFile1%getESTObj('mo coefficients',est_integral=moCoeff_gs(1))
       call GMatrixFile1%getESTObj('scf density',est_integral=density_gs(1))
       call GMatrixFile1%getESTObj('wavefunction',wavefunction_gs)
@@ -203,13 +198,9 @@ allocate(density_ex(1))
 !
       mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
       mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
-      andrew_int =  mp2_amps_gs%size()
       call mp2_amps_gs%print(iOut,"mp2_amps_gs values:")
       mp2_amps_gs = mp2_amps_gs%transpose()
-      write(*,*) "mp2_amps_gs_size", andrew_int
-      andrew_int =  mp2_amps_ex%size()
       call mp2_amps_ex%print(iOut,"mp2_amps_ex values:")
-      write(*,*) "mp2_amps_ex_size", andrew_int
       if (debug) then
         call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
       end if
@@ -237,12 +228,8 @@ allocate(density_ex(1))
       call trci_dets_string(iOut,4,nBasis,nAlpha,nBeta,Triple_Det,det_3)
       flush(iOut)
 
-      call int_1%init(3)
-      call int_2%init(3)
-      call int_3%init(3)
-      call int_4%init(3)
 !
-!     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
+!     Calculate all orthogonal vectors/matrices
 !
       dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
       dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
@@ -291,6 +278,19 @@ allocate(density_ex(1))
         call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
       end if
       flush(iOut)
+!
+!     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
+!
+      call int_1%init(3)
+      call int_2%init(3)
+      call int_3%init(3)
+      call int_4%init(3)
+
+      !Nij = NO_Overlap(Mij%det())
+      write(*,*) "Andrtew checking refertence dipole moment :   ",Nij
+      do i=1,3
+         call int_1%put(dm_db%at(i)*Nij,i)
+      end do
 
       write(*,3000)
       do i=1,3
@@ -303,8 +303,10 @@ allocate(density_ex(1))
 
       call int_1%print(iOut,"Contribution from integral 1")
 
-!     Compute Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
+!
+!     Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
 !     <D|S>
+!
 
       write(*,3100)
       do i=1,3
@@ -405,7 +407,7 @@ allocate(density_ex(1))
 
       call tdm_ci_au%init(3)
       do i = 1,3
-        call tdm_ci_au%put(dm_au%at(i)+int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
+        call tdm_ci_au%put(int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
         call tdm_ci_au%print(iOut,"TDM CI Dipole")
       end do
 
