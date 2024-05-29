@@ -247,6 +247,11 @@
       end do
       end subroutine det_to_swap_3
 
+      function NO_Overlap(Mij) result(Nij)
+      type(mqc_matrix)::Mij,bra_occ,ket_occ
+      real(kind=real64)::Nij
+      end function NO_Overlap
+
       function NO_Overlap_vec(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt) result(Nfi_vec)
 !
 !     Returns a vector of the orthogonal elements between either singles,
