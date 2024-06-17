@@ -247,9 +247,20 @@
       end do
       end subroutine det_to_swap_3
 
-      function NO_Overlap(Mij) result(Nij)
+      function NO_Overlap(wavefunction,moCoeff_1,moCoeff_2,nAlpha,nBeta) result(Nij)
+
+      type(mqc_pscf_wavefunction)::wavefunction
+      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap
       type(mqc_matrix)::Mij,bra_occ,ket_occ
       real(kind=real64)::Nij
+      integer(kind=int64)::nAlpha,nBeta
+
+      overlap = wavefunction%overlap_matrix
+
+      bra_occ=mqc_integral_output_block(moCoeff_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
+      Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
+      Nij = abs(Mij%det())
       end function NO_Overlap
 
       function NO_Overlap_vec(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt) result(Nfi_vec)

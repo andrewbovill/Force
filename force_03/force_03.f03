@@ -196,16 +196,16 @@ allocate(density_ex(1))
 !
 !     Get MP2 Amps
 !
-!     mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
-!     mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
-!     call mp2_amps_gs%print(iOut,"mp2_amps_gs values:")
-!     mp2_amps_gs = mp2_amps_gs%transpose()
-!     call mp2_amps_ex%print(iOut,"mp2_amps_ex values:")
-!     if (debug) then
-!       call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
-!     end if
-!     mp2_amps_ex = mp2_amps_ex%transpose()
-!     mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
+      mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,CAlpha,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
+      mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,CAlpha,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
+      call mp2_amps_gs%print(iOut,"mp2_amps_gs values:")
+      mp2_amps_gs = mp2_amps_gs%transpose()
+      call mp2_amps_ex%print(iOut,"mp2_amps_ex values:")
+      if (debug) then
+        call mp2_amps_gs%print(iOut,"MP2 Amplitudes for the ground state")
+      end if
+      mp2_amps_ex = mp2_amps_ex%transpose()
+      mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
 !
 !     List of all substituted arrays one needs to calculate all the integrals
 !
@@ -276,14 +276,18 @@ allocate(density_ex(1))
       end if
       flush(iOut)
 !
-!     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
+!     Initialize integrals 1, 2, 3, and 4
 !
+
       call int_1%init(3)
       call int_2%init(3)
       call int_3%init(3)
       call int_4%init(3)
 
-      !Nij = NO_Overlap(Mij%det())
+!
+!     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
+
+      Nij = NO_Overlap(wavefunction_gs,moCoeff_gs(1),moCoeff_ex(1),nAlpha,nBeta)
       do i=1,3
          call int_1%put(dm_db%at(i)*Nij,i)
       end do
@@ -294,7 +298,7 @@ allocate(density_ex(1))
            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
          call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
          CI_Dipole_Vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
-         call int_1%put(dot_product(CI_Dipole_Vec,Nfi_vec_S0),i)
+         call int_1%put(dot_product(CI_Dipole_Vec,Nfi_vec_S0)+int_1%at(i),i)
       enddo
       call int_1%print(iOut,"Contribution from integral 1")
 !
@@ -306,7 +310,9 @@ allocate(density_ex(1))
         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
         call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
+        write(*,*) "Andrew bug here!!!"
         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_1(i),Nfi_vec_S0) 
+        write(*,*) "Andrew bug here!!!"
         call int_2%put(dot_product(mp2_amps_gs,test_vec),i)
       enddo
 
