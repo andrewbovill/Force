@@ -42,13 +42,15 @@ INCLUDE 'force_03_mp2_mod.f03'
       real(kind=real64),parameter:: scale_debye=2.54158025
       real(kind=real64),dimension(:), allocatable :: moEnergiesAlpha_gs,moEnergiesBeta_gs,&
         moEnergiesAlpha_ex,moEnergiesBeta_ex
+      real(kind=real64),dimension(:,:),allocatable::CAlpha,CBeta
+      type(mqc_variable)::CMOAlpha1,CMOAlpha2,CMOBeta1,CMOBeta2
       character(len=512)::matrixFilename1,matrixFilename2
       type(mqc_vector)::nuclear_dipole_au,dm_au,tdm_ci_au !     Andrew dipole vectors in atomic units
       type(mqc_vector)::nuclear_dipole_db,dm_db,tdm_ci_db !     Andrew dipole vectors in Debyes
       type(mqc_vector)::int_1,int_2,int_3,int_4 ! Integrals 1,2,3,4
       type(mqc_vector)::aString,bString,mp2_amps_gs,mp2_amps_ex
       type(mqc_matrix):: mp2_mat,tmp_mqc_mat,Mij,bra_occ,ket_occ
-      type(MQC_Variable)::mqcTmpArray,CAlpha,CBeta,SMatrixAO
+      type(MQC_Variable)::mqcTmpArray,SMatrixAO
       type(mqc_gaussian_unformatted_matrix_file)::GMatrixFile1,GMatrixFile2
       type(mqc_molecule_data)::molData
       type(mqc_scf_integral),dimension(:),allocatable::density_gs,density_ex,moCoeff_gs,moCoeff_ex,overlap
@@ -127,15 +129,12 @@ allocate(density_ex(1))
       call GMatrixFile1%getArray('ALPHA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
       moEnergiesBeta_gs = mqcTmpArray
       call GMatrixFile1%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=mqcTmpArray)
-      CAlpha = mqcTmpArray
-      if(GMatrixFile1%isUnrestricted()) then
-        call GMatrixFile1%getArray('BETA MO COEFFICIENTS',mqcVarOut=mqcTmpArray)
-        CBeta = mqcTmpArray
-      else 
-        CBeta = CAlpha
-      end if
-
+      CAlpha    = mqcTmpArray
+      CMOAlpha1 = mqcTmpArray
+      call GMatrixFile1%getArray('BETA MO COEFFICIENTS',mqcVarOut=mqcTmpArray)
+      CMOBeta1  = mqcTmpArray
       call GMatrixFile1%getArray('OVERLAP',mqcVarOut=SMatrixAO)
+
       call GMatrixFile1%getESTObj('dipole x',est_integral=dipole_gs(1))
       call GMatrixFile1%getESTObj('dipole y',est_integral=dipole_gs(2))
       call GMatrixFile1%getESTObj('dipole z',est_integral=dipole_gs(3))
@@ -156,6 +155,11 @@ allocate(density_ex(1))
       call GMatrixFile2%getESTObj('scf density',est_integral=density_ex(1))
       call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
       call GMatrixFile2%get2ERIs('regular',eris_ex)
+
+      call GMatrixFile2%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=mqcTmpArray)
+      CMOAlpha2 = mqcTmpArray
+      call GMatrixFile2%getArray('BETA MO COEFFICIENTS',mqcVarOut=mqcTmpArray)
+      CMOBeta2  = mqcTmpArray
 
 !     Subroutine 'getMolData' collects a bunch of stuff from the matrix file
 !     what we care about are the atomic charges and cartesian coordinates.
@@ -240,14 +244,14 @@ allocate(density_ex(1))
       dipoleMO_gs = dipole_expectation_value(moCoeff_gs(1),dipole_gs,moCoeff_gs(1))
       dipoleMO_ex = dipole_expectation_value(moCoeff_ex(1),dipole_ex,moCoeff_ex(1))
       Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,Single_det, &
-        nBasis,nAlpha,nBeta,nOcc,nVirt)
+        nBasis,nAlpha,nBeta,nOcc,nVirt,CMOAlpha1,CMOAlpha2,CMOBeta1,CMOBeta2,SMatrixAO)
       call Nfi_vec_S0%print(iOut,"Nfi_vec_S0 vector")
       if(nElec.le.1 .or. nVirt.le.1) then
         write(*,*) "Not enough virtual or occupied orbitals for double &
           substituted determinants ... skipping"
       else
         Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
-          nBasis,nAlpha,nBeta,nOcc,nVirt)
+          nBasis,nAlpha,nBeta,nOcc,nVirt,CMOAlpha1,CMOAlpha2,CMOBeta1,CMOBeta2,SMatrixAO)
         call Nfi_vec_D0%print(iOut,"Nfi_vec_D0 vector")
       end if
       if(nElec.le.2 .or. nVirt.le.2) then
@@ -255,7 +259,7 @@ allocate(density_ex(1))
           substituted determinants ... skipping"
       else
         Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
-          nBasis,nAlpha,nBeta,nOcc,nVirt)
+          nBasis,nAlpha,nBeta,nOcc,nVirt,CMOAlpha1,CMOAlpha2,CMOBeta1,CMOBeta2,SMatrixAO)
         call Nfi_vec_T0%print(iOut,"Nfi_vec_T0 vector")
       end if
       write(*,*) "Orthogonal vectors all good"
@@ -307,8 +311,6 @@ allocate(density_ex(1))
          call int_1%put(dot_product(CI_Dipole_Vec,Nfi_vec_S0)+int_1%at(i),i)
       enddo
       call int_1%print(iOut,"Contribution from integral 1")
-      write(*,*) "Andrew debugging overlap 6/8/24"
-      goto 999
 !
 !     Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
 !     <D|S>
@@ -356,6 +358,10 @@ allocate(density_ex(1))
 !     Compute Integral #3 b_mp2<psi_0|u|psi_S><psi_S|phi_D>
 !     <0|S> Need Nfi_Mat
       write(*,3200)
+      if(nElec.le.1 .or. nVirt.le.1) then
+        write(*,*) "Not enough virtual or occupied orbitals for double &
+          substituted determinants"
+      else
         do i=1,3
           call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
             dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
@@ -367,19 +373,25 @@ allocate(density_ex(1))
          ! test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
           !call int_3%put((dot_product(mp2_amps_gs,test_vec)),i)
         enddo
+      end if
       call int_3%print(iOut,"Contribution from integral 3")
 !
 !     Compute Integral #4 <psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_D>
 !
       write(*,3300)
 !     <D|S>
-      do i=1,3
-        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-        call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
-        tmp_mqc_mat = matmul(CI_Dipole_1(i),Nfi_mat_SD) 
-        call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat),i)
-      enddo
+      if(nElec.le.1 .or. nVirt.le.1) then
+        write(*,*) "Not enough virtual or occupied orbitals for double &
+          substituted determinants"
+      else
+        do i=1,3
+          call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
+            dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
+          call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
+          tmp_mqc_mat = matmul(CI_Dipole_1(i),Nfi_mat_SD) 
+          call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat),i)
+        enddo
+      end if
 !     <D|D>
       if(nElec.le.1 .or. nVirt.le.1) then
         write(*,*) "Not enough virtual or occupied orbitals for double &
@@ -413,11 +425,11 @@ allocate(density_ex(1))
       call tdm_ci_au%init(3)
       do i = 1,3
         call tdm_ci_au%put(int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
-        call tdm_ci_au%print(iout,"tdm ci dipole")
+        call tdm_ci_au%print(iOut,"TDM CI Dipole")
       end do
 
+  999 Continue
       call cpu_time(timeEnd)
       write(iOut,5000) 'TOTAL JOB TIME',timeEnd-timeStart
-      999 Continue
       write(iOut,8999)
       end program force_03
