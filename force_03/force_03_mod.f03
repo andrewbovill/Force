@@ -263,7 +263,8 @@
       Nij = abs(Mij%det())
       end function NO_Overlap
 
-      function NO_Overlap_vec(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det,Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt) result(Nfi_vec)
+      function NO_Overlap_vec(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det, & 
+          Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt,CAlpha1,CAlpha2,CBeta1,CBeta2,overlapMAT) result(Nfi_vec)
 !
 !     Returns a vector of the orthogonal elements between either singles,
 !     doubles, or triples and a reference determinant (which is either the
@@ -274,14 +275,16 @@
       type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
       type(mqc_vector)::Nfi_vec,aString,bString
       type(mqc_matrix)::Mij,bra_occ,ket_occ
-      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3
+      type(mqc_scf_integral)::moCoeff_1,moCoeff_2,moCoeff_ci_1,moCoeff_ci_2,moCoeff_ci_3,overlap
       type(mqc_determinant)::det
+      type(mqc_variable)::CAlpha1,CAlpha2,CBeta1,CBeta2
       integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta,nVirt,nOcc
       integer(kind=int64)::occ_swap_1,virt_swap_1,occ_swap_2,virt_swap_2,occ_swap_3,virt_swap_3,i,swap_int
-      real(kind=real64)::Nij
+      real(kind=real64)::Nij_a,Nij_b,Nij
       integer(kind=int64),intent(in),dimension(:)::Swap_Det
       integer(kind=int64)::IPrint=1
       integer(kind=int64):: nOv,nOv2, nOv3 !Total # of Doubles & Triples count
+      type(mqc_variable)::tmpmatrix1,tmpmatrix2,overlapMAT
 
 1090  Format(1x,"swap_int at i: ",1x,i3,1x,"has value: ",b31)
 2080  Format(1x,"virt_swap_int 1:",1x,i3,1x,"occ_swap_int 1 value:",1x,i3)
@@ -309,20 +312,30 @@
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = bString%at(1)
           call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
-          moCoeff_ci_1 = moCoeff_1%swap(betaOrbsIn=[occ_swap_1,virt_swap_1])
-          bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
-          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
-          Nij = abs(Mij%det())
+          tmpmatrix1 = CBeta1
+          call MQC_Variable_MatrixPermuteColumns(tmpmatrix1,occ_swap_1,virt_swap_1) 
+          tmpmatrix2 = MatMul(Transpose(tmpmatrix1%subMatrix([1,nBasis],[1,nBeta])),  &
+            MatMul(overlapMAT,CBeta2%subMatrix([1,nBasis],[1,nBeta])))
+          Nij_b = tmpmatrix2%det()
+          tmpmatrix2 = MatMul(Transpose(CAlpha1%subMatrix([1,nBasis],[1,nAlpha])),  &
+            MatMul(overlapMAT,CAlpha2%subMatrix([1,nBasis],[1,nAlpha])))
+          Nij_a = tmpmatrix2%det()
+          Nij = Nij_a*Nij_b
           call Nfi_vec%put(Nij,(i))
         end do
         do i = nOv+1,2*nOV
           call mqc_get_strings_at_index(iOut,iPrint,i,aString,bString,wavefunction_1%nBasis,det,Swap_Det)
           swap_int = aString%at(1)
           call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
-          moCoeff_ci_1 = moCoeff_1%swap([occ_swap_1,virt_swap_1])
-          bra_occ=mqc_integral_output_block(moCoeff_ci_1%orbitals('occupied',[nAlpha],[nBeta]),'full')
-          Mij = matmul(matmul(dagger(bra_occ),overlap%getBlock("full")),ket_occ)
-          Nij = abs(Mij%det())
+          tmpmatrix1 = CAlpha1
+          call MQC_Variable_MatrixPermuteColumns(tmpmatrix1,occ_swap_1,virt_swap_1) 
+          tmpmatrix2 = MatMul(Transpose(tmpmatrix1%subMatrix([1,nBasis],[1,nAlpha])),  &
+            MatMul(overlapMAT,CAlpha2%subMatrix([1,nBasis],[1,nAlpha])))
+          Nij_a = tmpmatrix2%det()
+          tmpmatrix2 = MatMul(Transpose(CBeta1%subMatrix([1,nBasis],[1,nBeta])),  &
+            MatMul(overlapMAT,CBeta2%subMatrix([1,nBasis],[1,nBeta])))
+          Nij_b = tmpmatrix2%det()
+          Nij = Nij_a*Nij_b
           call Nfi_vec%put(Nij,(i))
         end do
       case (2)
