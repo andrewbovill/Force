@@ -46,72 +46,54 @@
       
       end function dipole_expectation_value
 
-      subroutine SingleDet(nOcc,nVirt,nOV,nMOs,IDetRef,iDetSingles)
-
-      implicit none
-      integer::i,ii,ia,nOcc,nMOs,nVirt,nOV,iDetRef
-      integer, dimension(nOcc*nVirt) :: iDetSingles
-
-      iDetRef = 0
-      do i = 0,nOcc-1
-        iDetRef = IBSet(iDetRef,i)
-      endDo
- 
-!     Compute the number of singles substituted determinants and then build them
-!     all in the array iDetSingles.
- 
-      i = 0
-      do ii = 0,nOcc-1
-        do ia = nOcc,nMOs-1
-          i = i + 1
-          iDetSingles(i) = IBClr(iDetRef,ii)
-          iDetSingles(i) = IBSet(iDetSingles(i),ia)
-        endDo
-      endDo
-
-      end subroutine SingleDet
-
-      subroutine det_to_swap_1(iDetIn,virt_1,occ_1,nElec,nBasis)
+      subroutine det_to_swap(det_1,det_2,det_3,nOV,nOV2,nOV3,nElec,nBasis)
 !
-!     This routine reading from the determinant string list returns the orbitals
-!     to swap in the "swap" subroutine from the mqc_est_obj wavefunction
+!     This routine outputs matrices containing all substituted swaps
+!     det_1 is size (2,nOV) where first column is occ_swap, second column is
+!     virt_swap
+!     det_1 is size (4,nOV2) where first 2 columns are occ_swaps, second column
+!     are 2 virt_swaps
+!     det_3 is size (6,nOV2) where first 3 columns are occ_swaps, second column
+!     are 3 virt_swaps
 !
 
       implicit none
-      integer(kind=int64),intent(in) :: iDetIn,nElec,nBasis
-      integer(kind=int64) :: iDetRef,iDetSwap,i,virt_1,occ_1
-      logical::bit_test
+      integer(kind=int64),intent(in) :: nOV,nOV2,nOV3,nElec,nBasis
+      integer(kind=int64),dimension(2,nOV)::det_1
+      integer(kind=int64),dimension(4,nOV2),optional::det_2
+      integer(kind=int64),dimension(6,nOV3),optional::det_3
+      integer::i,j,k,l,m,n
 
-      iDetRef = 0
-      do i = 0,nElec-1
-        iDetRef = IBSet(iDetRef,i)
-      endDo
-!
-!     IDet swap turns on 1 where differences are located and 0
-!     where the reference and single determinant are the same
-!
-      iDetSwap = XOR(iDetRef,iDetIn)
-!
-!     Now taking the xor and obtaining '100001' I need a routine to go through
-!     the bit and count up the swaps
-!
-      bit_test = .false.
-      do i = 0,nElec-1  
-        bit_test = BTEST(iDetSwap,i)
-        if (bit_test.eqv. .true.) then
-          occ_1 = i+1
-        end if
-        !write(*,*) "the position: ", i ," is on or off: ", bit_test  
+      do i = 1,nElec  
+        do j = nElec+1,nBasis
+          det_1(1,i) = i
+          det_1(2,j) = j
+          det_2(1,i) = i
+          det_2(2,j) = j
+          det_3(1,i) = i
+          det_3(2,j) = j
+          if(nElec.le.1 .or. nVirt.le.1) then
+            do k = i+1,nElec
+              do l = nElec+2,nBasis
+                det_2(2,k) = k
+                det_2(4,l) = l
+                det_3(2,k) = k
+                det_3(4,l) = l
+                if(nElec.le.2 .or. nVirt.le.2) then
+                  do m = i+2,nElec
+                    do n = nElec+3,nBasis
+                      det_3(3,m) = m
+                      det_3(6,n) = n
+                    end do
+                  end do
+                end if
+              end do
+            end do
+          end if
+        end do
       end do
 
-      do i = nElec,nBasis-1
-        bit_test = BTEST(iDetSwap,i)
-        if (bit_test .eqv. .true.) then
-          virt_1 = i+1
-        end if
-      end do
-
-      end subroutine det_to_swap_1
+      end subroutine det_to_swap
 
       subroutine det_to_swap_2(iDetIn,virt_1,virt_2,occ_1,occ_2,nElec,nBasis)
 !
@@ -247,12 +229,12 @@
       end do
       end subroutine det_to_swap_3
 
-      function NO_Overlap(Mij) result(Nij)
+      function NO_Overlap(wavefunction,moCoeff_1,moCoeff_2,nAlpha,nBeta) result(Nij)
       type(mqc_pscf_wavefunction)::wavefunction
       type(mqc_scf_integral)::moCoeff_1,moCoeff_2,overlap
-      type(mqc_matrix)::Mij,bra_occ,ket_occ
       real(kind=real64)::Nij
       integer(kind=int64)::nAlpha,nBeta
+      type(mqc_matrix)::bra_occ,ket_occ,Mij
 
       overlap = wavefunction%overlap_matrix
 

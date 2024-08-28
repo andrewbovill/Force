@@ -20,7 +20,7 @@
 
       CONTAINS
 
-      function GetE2(moInts,CAlpha,moEnergiesAlpha,moEnergiesBeta,nElectronsAlpha, &
+      function GetE2(moInts,moEnergiesAlpha,moEnergiesBeta,nElectronsAlpha, &
           nElectronsBeta,nBasisUse) result(E2) 
 !
 !     Reproduce E2 as a check to see if amplitudes are computed properly.
@@ -28,7 +28,6 @@
 !
       type(mqc_twoERIs)::moInts
       real(kind=real64) :: E2, deltaIJAB, numerator,E2AA,E2AB,E2BB,E2BA
-      real(kind=real64),dimension(:,:) :: CAlpha
       real(kind=real64),dimension(:) :: moEnergiesAlpha,moEnergiesBeta
       integer(kind=int64) :: i,j,a,b,nElectronsAlpha,nElectronsBeta,nBasisUse
 
@@ -64,8 +63,8 @@
       E2 = 2*E2AA+E2AB
 
       end function GetE2 
-      
-      function GetMp2Amps(moInts,CAlpha,moEnergiesAlpha,moEnergiesBeta,nElectronsAlpha, &
+     
+      function GetMp2Amps(moInts,moEnergiesAlpha,moEnergiesBeta,nElectronsAlpha, &
           nElectronsBeta,nBasisUse) result(mp2_amps) 
 !
 !     Obtains the mp2 amplitudes and stores in r4 mqc tensor
@@ -74,7 +73,6 @@
       type(mqc_vector) :: mp2_amps
       type(mqc_scalar) :: mqc_temp
       real(kind=real64) :: deltaIJAB,temp_scalar
-      real(kind=real64),dimension(:,:) :: CAlpha
       real(kind=real64),dimension(:) :: moEnergiesAlpha,moEnergiesBeta
       integer(kind=int64) :: i,j,ii,a,b,nElectronsAlpha,nElectronsBeta, &
         nBasisUse,nOv,nVirt,nOcc,ia,ja
