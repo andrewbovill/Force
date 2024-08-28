@@ -52,7 +52,7 @@ INCLUDE 'force_04_mp2_mod.f03'
       integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta,nOcc,nVirt,nMOs,nOV,nOV2,nOV3,nA,nB,nDets
       integer(kind=int64)::i,j
-      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test,Nij
+      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test,Nij,Dij
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025! conversion factor au.s to Debyes
       real(kind=real64),dimension(:), allocatable::moEnergiesAlpha_gs, &
@@ -77,7 +77,8 @@ INCLUDE 'force_04_mp2_mod.f03'
       type(mqc_matrix)::Nfi_mat_SD,Nfi_mat_DD,Nfi_mat_TD, &
         dipoleIntegralsSSX,dipoleIntegralsSSY, dipoleIntegralsSSZ,     &
         dipoleIntegralsSDX,dipoleIntegralsSDY, dipoleIntegralsSDZ,     &
-        dipoleIntegralsSTX,dipoleIntegralsSTY, dipoleIntegralsSTZ     
+        dipoleIntegralsSTX,dipoleIntegralsSTY, dipoleIntegralsSTZ,     &     
+        tmp_mqc_mat1,tmp_mqc_mat2
       type(mqc_vector)::Nfi_vec_S0,Nfi_vec_D0,Nfi_vec_T0,CI_Dipole_Vec,& 
         test_vec,dipoleIntegrals0SX,dipoleIntegrals0SY, dipoleIntegrals0SZ     
       logical :: debug=.false.
@@ -99,6 +100,9 @@ INCLUDE 'force_04_mp2_mod.f03'
  3200 format(1x,"Entering integral 3",1x)
  3300 format(1x,"Entering integral 4",1x)
  5000 Format(1x,'Time (',A,'): ',f8.1,' s.')
+ 5500 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3)
+ 5510 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3,'Occ 2: ',I3,1X,'Virt 2: ',I3,1x,'Occ: ',I3,1X,'Virt: ',I3)
+ 5520 Format(1x,'Occ: ',I3,1X,'Virt: ',I3)
  8999 Format(/,1x,'END OF program force_04.')
 !
 !
@@ -171,13 +175,10 @@ INCLUDE 'force_04_mp2_mod.f03'
 !     Initialize total dipole moment vector and compute.
 !
       call dm_au%init(3)
-      tmpMQC1 = PMatrixTotal
-      tmpMQC2 = dipoleAOx
-      call dm_au%put((-1)*contraction(tmpMQC1,tmpMQC2))
-      tmpMQC2 = dipoleAOy
-      call dm_au%put((-1)*contraction(tmpMQC1,tmpMQC2))
-      tmpMQC2 = dipoleAOz
-      call dm_au%put((-1)*contraction(tmpMQC1,tmpMQC2))
+      write(*,*) "HERE?"
+      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOx)),int(1))
+      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOy)),int(2))
+      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOz)),int(3))
 
       call dm_au%print(iOut,'Total Dipole Moment in atomic units')
 !
@@ -196,7 +197,7 @@ INCLUDE 'force_04_mp2_mod.f03'
       nOV = nOcc*nVirt
       nOV2 = (((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))
       nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
-      nDets = nOccAlpha1*nVirtAlpha1+nOccBeta1*nVirtBeta1
+      nDets = nOcc*nVirt+nOcc*nVirt
 
       call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
       call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
@@ -222,30 +223,57 @@ INCLUDE 'force_04_mp2_mod.f03'
 !     Overlap and Dipole integrals
       allocate(det_list_1(2,nOv))
       det_list_1 = 0.0
-      if(nElec.le.1 .or. nVirt.le.1) then
+      if(nElec.ge.2 .and. nVirt.ge.2) then
+        write(*,*) "check 1"
         allocate(det_list_2(4,nOv2))
         det_list_2 = 0.0
+      else 
+        det_list_2 = 0.0
       end if
-      if(nElec.le.2 .or. nVirt.le.2) then
+      if(nElec.ge.3 .and. nVirt.ge.3) then
+        write(*,*) "check 2"
         allocate(det_list_3(6,nOv3))
+        det_list_3 = 0.0
+      else
         det_list_3 = 0.0
       end if
 
       call det_to_swap(det_list_1,det_list_2,det_list_3,nOv,nOV2,nOV3,nAlpha,nBasisUse)
 
-      allocate(tmpvec_1(nOv))
-      allocate(tmpvec_2(nOV))
-      allocate(tmpvec_3(nOV))
+      call dipoleIntegrals0SX%init(nOV)
+      call dipoleIntegrals0SY%init(nOV)
+      call dipoleIntegrals0SZ%init(nOV)
 
       do i = 1,nOV
         tmpMQC1 = CAlpha1%column(det_list_1(1,i))
         tmpMQC2 = CAlpha1%column(det_list_1(2,i))
-        call dipoleIntegrals0SX%put(dot_product(tmpMQC1, &
-          MQC_Variable_MatrixVector(dipoleAOx,tmpMQC2,i)))
-        call dipoleIntegrals0SY%put(dot_product(tmpMQC1, &
-          MQC_Variable_MatrixVector(dipoleAOy,tmpMQC2,i)))
-        call dipoleIntegrals0SZ%put(dot_product(tmpMQC1, &
-          MQC_Variable_MatrixVector(dipoleAOz,tmpMQC2,i)))
+        tmpMQC3 = dot_product(tmpMQC1,MQC_Variable_MatrixVector(dipoleAox,tmpMQC2))
+        Dij=tmpMQC3
+        call dipoleIntegrals0SX%put(Dij,i) 
+        tmpMQC3 = dot_product(tmpMQC1,MQC_Variable_MatrixVector(dipoleAoy,tmpMQC2))
+        Dij=tmpMQC3
+        call dipoleIntegrals0SY%put(Dij,i) 
+        tmpMQC3 = dot_product(tmpMQC1,MQC_Variable_MatrixVector(dipoleAoz,tmpMQC2))
+        Dij=tmpMQC3
+        call dipoleIntegrals0SZ%put(Dij,i) 
+      end do
+
+      do i = 1,nOV 
+        write(123,5500) det_list_1(1,i),det_list_1(2,i)
+      end do
+      do i = 1,nOV2 
+        write(123,5510) det_list_2(1,i),det_list_2(2,i),det_list_2(1,i),det_list_2(2,i)
+      end do
+      do i = 1,nOV2 
+!       write(123,5500) det_list_1(1,i),det_list_1(2,i)
+      end do
+
+
+
+
+      call dipoleIntegrals0SX%print(iOut,"Dipole X's") 
+      call dipoleIntegrals0SY%print(iOut,"Dipole Y's") 
+      call dipoleIntegrals0SZ%print(iOut,"Dipole Z's") 
 
 !       dipoleIntegralsSSX,dipoleIntegralsSSY, dipoleIntegralsSSZ,     &
 !       dipoleIntegralsSDX,dipoleIntegralsSDY, dipoleIntegralsSDZ,     &
@@ -421,11 +449,11 @@ INCLUDE 'force_04_mp2_mod.f03'
 
 !     call int_4%print(iOut,"Contribution from integral 4")
 
-!     call tdm_ci_au%init(3)
-!     do i = 1,3
+      call tdm_ci_au%init(3)
+      do i = 1,3
 !       call tdm_ci_au%put(int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
 !       call tdm_ci_au%print(iOut,"TDM CI Dipole")
-!     end do
+      end do
 
   999 Continue
       call cpu_time(timeEnd)
