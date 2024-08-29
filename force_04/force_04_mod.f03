@@ -68,12 +68,13 @@
       nVirt = nBasis - nElec
 
       a = 0
-      b = 0
+      b = 1
       c = 0
 
       do i = 1,nElec  
         do j = nElec+1,nBasis
           a = a + 1
+          write(*,*) "a", a 
           det_1(1,a) = i
           det_1(2,a) = j
           det_2(1,a) = i
@@ -83,15 +84,14 @@
           if(nElec.ge.2 .and. nVirt.ge.2) then
             do k = i+1,nElec
               do l = nElec+2,nBasis
-                b = b + 1
-                det_2(2,b) = k
-                det_2(4,b) = l 
-                det_3(2,b) = k
-                det_3(5,b) = l 
+                write(*,*) "k", k
+                det_2(2,a) = k
+                det_2(4,a) = l 
+                det_3(2,a) = k
+                det_3(5,a) = l 
                 if(nElec.ge.3 .and. nVirt.ge.3) then
                   do m = i+2,nElec
                     do n = nElec+3,nBasis
-                      c = c + 1
                       det_3(3,a) = m
                       det_3(6,a) = n 
                     end do
@@ -103,6 +103,8 @@
         end do
       end do
 
+      write(*,*) "b", b
+      write(*,*) "c", c
       end subroutine det_to_swap
 
 !     function NO_Overlap(wavefunction,moCoeff_1,moCoeff_2,nAlpha,nBeta) result(Nij)
