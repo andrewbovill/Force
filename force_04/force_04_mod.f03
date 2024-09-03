@@ -118,7 +118,6 @@
       real(kind=real64),intent(out):: TD_Overlap
       integer(kind=int64)::nPlusOne,nMinusOne,iPlusOne,  &
         iMinusOne
-      write(*,*) "Andrew first debug"
       call SMat%eigen(SMatEVals,SMatEVecs)
       tmpMQCvar = SMatEVals%rpower(-0.5)
       SMatrixAOHalf = MatMul(MatMul(SMatEVecs,tmpMQCvar%diag()),TRANSPOSE(SMatEVecs))
@@ -128,10 +127,8 @@
       diffDensity = PMat1 - PMat2
       tmpMQCvar = MatMul(SMatrixAOHalf,MatMul(diffDensity,SMatrixAOHalf))
       call tmpMQCvar%eigen(diffDensityEVals,diffDensityEVecs)
-      write(*,*) "Andrew second debug"
 
       vector = diffDensityEVals
-      write(*,*) "Andrew third debug"
       do i = 1,nBasis
         if(vector(i).ge.0.999) then
           vector(i) = float(0)
@@ -148,7 +145,6 @@
       endDo
 
       tmpMQCvar = MatMul(SMatrixAOMinusHalf,diffDensityEVecs)
-!     if(DEBUG) call tmpMQCvar%print(header='V')
       TMatrix = MatMul(Transpose(CMOsKet),MatMul(SMat,tmpMQCvar))
 !     if(DEBUG) then
 !       call TMatrix%print(header='TMatrix')

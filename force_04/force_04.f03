@@ -221,10 +221,8 @@ INCLUDE 'force_04_mod.f03'
       nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
       nDets = nOcc*nVirt+nOcc*nVirt
 
-      write(*,*) "Andrew memory problems"
-!     call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
-!     call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
-      write(*,*) "Andrew after memory problems"
+      call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
+      call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
 
       if (debug) then
         E2_test = GetE2(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
@@ -233,15 +231,15 @@ INCLUDE 'force_04_mod.f03'
 !
 !     Get MP2 Amps
 !
-!     mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
-!     mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
-!     mp2_amps_gs = mp2_amps_gs%transpose()
-!     mp2_amps_ex = mp2_amps_ex%transpose()
-!     if (debug) then
-!       call mp2_amps_gs%print(iOut,"MP2 Amplitude Ground State values:")
-!       call mp2_amps_ex%print(iOut,"MP2 Amplitude Excited State values:")
-!     end if
-!     mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
+      mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
+      mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
+      mp2_amps_gs = mp2_amps_gs%transpose()
+      mp2_amps_ex = mp2_amps_ex%transpose()
+      if (debug) then
+        call mp2_amps_gs%print(iOut,"MP2 Amplitude Ground State values:")
+        call mp2_amps_ex%print(iOut,"MP2 Amplitude Excited State values:")
+      end if
+      mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
 !
 !     August 27th Converted to computing determinants with no bit logic for 
 !     Overlap and Dipole integrals
