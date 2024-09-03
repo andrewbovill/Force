@@ -1,5 +1,5 @@
-INCLUDE 'force_04_mod.f03'
 INCLUDE 'force_04_mp2_mod.f03'
+INCLUDE 'force_04_mod.f03'
       program force_04
 !     force_04
 !     
@@ -52,7 +52,8 @@ INCLUDE 'force_04_mp2_mod.f03'
       integer(kind=int64)::nCommands,iPrint=4,nAtoms,nBasis, &
         nBasisUse,nElec,nAlpha,nBeta,nOcc,nVirt,nMOs,nOV,nOV2,nOV3,nA,nB,nDets
       integer(kind=int64)::i,j
-      real(kind=real64)::timeStart,timeEnd,test,temp_scalar,E2_test,Nij,Dij
+      real(kind=real64)::timeStart,timeEnd,test,tmp_scalar,E2_test,Nij, &
+        Nij_a,Nij_b,Dij,scfEnergy1,scfEnergy2,deltaSCFEnergy
 !     Andrew conversion factor from a.u.s to Debyes
       real(kind=real64),parameter:: scale_debye=2.54158025! conversion factor au.s to Debyes
       real(kind=real64),dimension(:), allocatable::moEnergiesAlpha_gs, &
@@ -67,20 +68,24 @@ INCLUDE 'force_04_mp2_mod.f03'
       type(mqc_vector)::mp2_amps_gs,mp2_amps_ex,int_1,int_2,int_3,int_4
       type(mqc_matrix):: mp2_mat,tmp_mqc_mat
       type(mqc_molecule_data)::molData
-      type(mqc_scf_integral),dimension(:),allocatable::moCoeff_gs,moCoeff_ex,verlap
+      type(mqc_scf_integral),dimension(:),allocatable::moCoeff_gs,moCoeff_ex
       type(mqc_pscf_wavefunction)::wavefunction_gs,wavefunction_ex
       type(mqc_scf_integral),dimension(3)::dipole_ex,dipoleMO_gs,dipoleMO_ex
       type(mqc_twoERIs)::eris_gs,eris_ex,mo_ERIs_gs,mo_ERIs_ex
       type(mqc_variable) :: mqcTmpArray,dipoleAOx,dipoleAOy,dipoleAOz, &
-        PMatrixTotal,PMatrixAlpha,PMatrixBeta,CAlpha1,CBeta1, &
-        tmpMQC1,tmpMQC2,tmpMQC3
+        PMatrixTotal1,PMatrixAlpha1,PMatrixBeta1,PMatrixTotal2, &
+        PMatrixAlpha2,PMatrixBeta2,CAlpha1,CBeta1,CAlpha2, &
+        CBeta2,tmpMQC1,tmpMQC2,tmpMQC3,overlap_mat 
       type(mqc_matrix)::Nfi_mat_SD,Nfi_mat_DD,Nfi_mat_TD, &
         dipoleIntegralsSSX,dipoleIntegralsSSY, dipoleIntegralsSSZ,     &
         dipoleIntegralsSDX,dipoleIntegralsSDY, dipoleIntegralsSDZ,     &
         dipoleIntegralsSTX,dipoleIntegralsSTY, dipoleIntegralsSTZ,     &     
         tmp_mqc_mat1,tmp_mqc_mat2
       type(mqc_vector)::Nfi_vec_S0,Nfi_vec_D0,Nfi_vec_T0,CI_Dipole_Vec,& 
-        test_vec,dipoleIntegrals0SX,dipoleIntegrals0SY, dipoleIntegrals0SZ     
+        test_vec, dipoleIntegralsX,dipoleIntegralsY, dipoleIntegralsZ, &     
+        dipoleIntegrals0SX,dipoleIntegrals0SY, dipoleIntegrals0SZ     
+      real(kind=real64)::dipoleStrength,oscillatorStrength,TDoverlapAlpha, &
+        TDoverlapBeta
       logical :: debug=.false.
 !
 !     Format Statements
@@ -101,8 +106,10 @@ INCLUDE 'force_04_mp2_mod.f03'
  3300 format(1x,"Entering integral 4",1x)
  5000 Format(1x,'Time (',A,'): ',f8.1,' s.')
  5500 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3)
- 5510 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3,'Occ 2: ',I3,1X,'Virt 2: ',I3,1x,'Occ: ',I3,1X,'Virt: ',I3)
- 5520 Format(1x,'Occ: ',I3,1X,'Virt: ',I3)
+ 5510 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3,1X,'Occ 2: ',I3,1X,'Virt 2: ',I3)
+ 5520 Format(1x,'Occ 1: ',I3,1X,'Virt 1: ',I3,'Occ 2: ',I3,1X,'Virt 2: ',I3,1x,'Occ: ',I3,1X,'Virt: ',I3)
+ 6000 Format(1x,'Dipole Strength  =',1X,f8.6)
+ 6100 Format(1x,'Oscillator Strength  =',1X,f8.6)
  8999 Format(/,1x,'END OF program force_04.')
 !
 !
@@ -135,29 +142,45 @@ INCLUDE 'force_04_mp2_mod.f03'
       write(*,*)
       call GMatrixFile1%getArray('ALPHA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
       moEnergiesAlpha_gs = mqcTmpArray
-      call GMatrixFile1%getArray('BEtA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
+      call GMatrixFile1%getArray('BETA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
       moEnergiesBeta_gs = mqcTmpArray
 
+      call GMatrixFile1%getArray('OVERLAP',mqcVarOut=overlap_mat)
       call GMatrixFile1%getArray('DIPOLE INTEGRALS',mqcVarOut=dipoleAOx,arraynum=1)
       call GMatrixFile1%getArray('DIPOLE INTEGRALS',mqcVarOut=dipoleAOy,arraynum=2)
       call GMatrixFile1%getArray('DIPOLE INTEGRALS',mqcVarOut=dipoleAOz,arraynum=3)
-      call GMatrixFile1%getArray('ALPHA SCF DENSITY MATRIX',mqcVarOut=PMatrixAlpha)
+      call GMatrixFile1%getArray('ALPHA SCF DENSITY MATRIX',mqcVarOut=PMatrixAlpha1)
       call GMatrixFile1%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=CAlpha1)
       if(GMatrixFile1%isUnrestricted()) then
-        call GMatrixFile1%getArray('BETA SCF DENSITY MATRIX',mqcVarOut=PMatrixBeta)
+        call GMatrixFile1%getArray('BETA SCF DENSITY MATRIX',mqcVarOut=PMatrixBeta1)
         call GMatrixFile1%getArray('BETA MO COEFFICIENTS',mqcVarOut=CBeta1)
       else
-        PMatrixBeta = PMatrixAlpha
+        PMatrixBeta1 = PMatrixAlpha1
         CBeta1 = CAlpha1
       endIf
-      PMatrixTotal = PMatrixAlpha+PMatrixBeta
+      PMatrixTotal1 = PMatrixAlpha1+PMatrixBeta1
       call GMatrixFile1%getESTObj('wavefunction',wavefunction_gs)
       call GMatrixFile1%get2ERIs('regular',eris_gs)
+      call GMatrixFile2%getArray('ALPHA MO COEFFICIENTS',mqcVarOut=CAlpha2)
+      call GMatrixFile2%getArray('ALPHA SCF DENSITY MATRIX',mqcVarOut=PMatrixAlpha2)
+      if(GMatrixFile2%isUnrestricted()) then
+        call GMatrixFile2%getArray('BETA SCF DENSITY MATRIX',mqcVarOut=PMatrixBeta2)
+        call GMatrixFile2%getArray('BETA MO COEFFICIENTS',mqcVarOut=CBeta2)
+      else
+        CBeta2 = CAlpha2
+        PMatrixBeta2 = PMatrixAlpha2
+      endIf
+
+      PMatrixTotal2 = PMatrixAlpha2+PMatrixBeta2
 
       call GMatrixFile2%getArray('ALPHA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
       moEnergiesAlpha_ex = mqcTmpArray
       call GMatrixFile2%getArray('BETA ORBITAL ENERGIES',mqcVarOut=mqcTmpArray)
       moEnergiesBeta_ex = mqcTmpArray
+
+      scfEnergy1 = GMatrixFile1%getValReal('scfEnergy')
+      scfEnergy2 = GMatrixFile2%getValReal('scfEnergy')
+      deltaSCFEnergy = scfEnergy2-scfEnergy1
 
       call GMatrixFile2%getESTObj('wavefunction',wavefunction_ex)
       call GMatrixFile2%get2ERIs('regular',eris_ex)
@@ -175,10 +198,9 @@ INCLUDE 'force_04_mp2_mod.f03'
 !     Initialize total dipole moment vector and compute.
 !
       call dm_au%init(3)
-      write(*,*) "HERE?"
-      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOx)),int(1))
-      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOy)),int(2))
-      call dm_au%put(-1*float(contraction(PMatrixTotal,dipoleAOz)),int(3))
+      call dm_au%put(-1*float(contraction(PMatrixTotal1,dipoleAOx)),int(1))
+      call dm_au%put(-1*float(contraction(PMatrixTotal1,dipoleAOy)),int(2))
+      call dm_au%put(-1*float(contraction(PMatrixTotal1,dipoleAOz)),int(3))
 
       call dm_au%print(iOut,'Total Dipole Moment in atomic units')
 !
@@ -199,8 +221,10 @@ INCLUDE 'force_04_mp2_mod.f03'
       nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
       nDets = nOcc*nVirt+nOcc*nVirt
 
-      call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
-      call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
+      write(*,*) "Andrew memory problems"
+!     call twoERI_trans(iOut,0,wavefunction_gs%MO_Coefficients,eris_gs,mo_ERIs_gs)
+!     call twoERI_trans(iOut,0,wavefunction_ex%MO_Coefficients,eris_ex,mo_ERIs_ex)
+      write(*,*) "Andrew after memory problems"
 
       if (debug) then
         E2_test = GetE2(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
@@ -209,36 +233,46 @@ INCLUDE 'force_04_mp2_mod.f03'
 !
 !     Get MP2 Amps
 !
-      mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
-      mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
-      mp2_amps_gs = mp2_amps_gs%transpose()
-      mp2_amps_ex = mp2_amps_ex%transpose()
-      if (debug) then
-        call mp2_amps_gs%print(iOut,"MP2 Amplitude Ground State values:")
-        call mp2_amps_ex%print(iOut,"MP2 Amplitude Excited State values:")
-      end if
-      mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
+!     mp2_amps_gs = GetMp2Amps(mo_ERIs_gs,moEnergiesAlpha_gs,moEnergiesBeta_gs,nAlpha,nBeta,nBasis)
+!     mp2_amps_ex = GetMp2Amps(mo_ERIs_ex,moEnergiesAlpha_ex,moEnergiesBeta_ex,nAlpha,nBeta,nBasis)
+!     mp2_amps_gs = mp2_amps_gs%transpose()
+!     mp2_amps_ex = mp2_amps_ex%transpose()
+!     if (debug) then
+!       call mp2_amps_gs%print(iOut,"MP2 Amplitude Ground State values:")
+!       call mp2_amps_ex%print(iOut,"MP2 Amplitude Excited State values:")
+!     end if
+!     mp2_mat = mqc_outer(mp2_amps_ex%transpose(),mp2_amps_gs)
 !
 !     August 27th Converted to computing determinants with no bit logic for 
 !     Overlap and Dipole integrals
-      allocate(det_list_1(2,nOv))
+      allocate(det_list_1(2,nOV))
       det_list_1 = 0.0
       if(nElec.ge.2 .and. nVirt.ge.2) then
-        write(*,*) "check 1"
-        allocate(det_list_2(4,nOv2))
+        allocate(det_list_2(4,nOV2))
         det_list_2 = 0.0
       else 
         det_list_2 = 0.0
       end if
       if(nElec.ge.3 .and. nVirt.ge.3) then
-        write(*,*) "check 2"
-        allocate(det_list_3(6,nOv3))
+        allocate(det_list_3(6,nOV3))
         det_list_3 = 0.0
       else
         det_list_3 = 0.0
       end if
 
-      call det_to_swap(det_list_1,det_list_2,det_list_3,nOv,nOV2,nOV3,nAlpha,nBasisUse)
+      call det_to_swap(det_list_1,det_list_2,det_list_3,nOV,nOV2,nOV3,nAlpha,nBasisUse)
+
+      if (debug) then
+        do i = 1,nOV 
+          write(123,5500) det_list_1(1,i),det_list_1(2,i)
+        end do
+        do i = 1,nOV2 
+          write(123,5510) det_list_2(1,i),det_list_2(3,i),det_list_2(2,i),det_list_2(4,i)
+        end do
+        do i = 1,nOV3 
+          write(123,5520) det_list_3(1,i),det_list_3(4,i),det_list_3(2,i),det_list_3(5,i),det_list_3(3,i),det_list_3(6,i)
+        end do
+      end if
 
       call dipoleIntegrals0SX%init(nOV)
       call dipoleIntegrals0SY%init(nOV)
@@ -258,202 +292,129 @@ INCLUDE 'force_04_mp2_mod.f03'
         call dipoleIntegrals0SZ%put(Dij,i) 
       end do
 
-      do i = 1,nOV 
-        write(123,5500) det_list_1(1,i),det_list_1(2,i)
-      end do
-      do i = 1,nOV2 
-        write(123,5510) det_list_2(1,i),det_list_2(2,i),det_list_2(1,i),det_list_2(2,i)
-      end do
-      do i = 1,nOV2 
-!       write(123,5500) det_list_1(1,i),det_list_1(2,i)
-      end do
-
-
-
-
-      call dipoleIntegrals0SX%print(iOut,"Dipole X's") 
-      call dipoleIntegrals0SY%print(iOut,"Dipole Y's") 
-      call dipoleIntegrals0SZ%print(iOut,"Dipole Z's") 
-
-!       dipoleIntegralsSSX,dipoleIntegralsSSY, dipoleIntegralsSSZ,     &
-!       dipoleIntegralsSDX,dipoleIntegralsSDY, dipoleIntegralsSDZ,     &
-!       dipoleIntegralsSTX,dipoleIntegralsSTY, dipoleIntegralsSTZ     
-
+      call dipoleIntegrals0SX%print(123,"Dipole 0X") 
+      call dipoleIntegrals0SY%print(123,"Dipole 0Y") 
+      call dipoleIntegrals0SZ%print(123,"Dipole 0Z") 
 
 !
 !     Calculate all orthogonal vectors/matrices
 !
+      call Nfi_vec_S0%init(2*nOV)
+        
+      do i = 1,nOV
+        tmpMQC1 = CBeta1
+        call MQC_Variable_MatrixPermuteColumns(tmpMQC1,& 
+          det_list_1(1,i),det_list_1(2,i))
+        tmpMQC2 = MatMul(Transpose(tmpMQC1%subMatrix([1,nBasis],[1,nBeta])),  &
+          MatMul(overlap_mat,CBeta2%subMatrix([1,nBasis],[1,nBeta])))
+        Nij_b = tmpMQC2%det()
+        tmpMQC3 = MatMul(Transpose(CAlpha1%subMatrix([1,nBasis],[1,nAlpha])),  &
+          MatMul(overlap_mat,CAlpha2%subMatrix([1,nBasis],[1,nAlpha])))
+        Nij_a = tmpMQC3%det()
+        Nij = Nij_a*Nij_b
+        call Nfi_vec_S0%put(Nij,i)
+      end do
 
-!     Nfi_vec_S0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1), &
-!       nBasis,nAlpha,nBeta)
-!     call Nfi_vec_S0%print(iOut,"Nfi_vec_S0 vector")
-!     if(nElec.le.1 .or. nVirt.le.1) then
-!       write(*,*) "Not enough virtual or occupied orbitals for double &
-!         substituted determinants ... skipping"
-!     else
-!       Nfi_vec_D0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,Double_Det, &
-!         nBasis,nAlpha,nBeta,nOcc,nVirt)
-!       call Nfi_vec_D0%print(iOut,"Nfi_vec_D0 vector")
-!     end if
-!     if(nElec.le.2 .or. nVirt.le.2) then
-!       write(*,*) "Not enough virtual or occupied orbitals for triple &
-!         substituted determinants ... skipping"
-!     else
-!       Nfi_vec_T0 = NO_Overlap_vec(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,Triple_Det, &
-!         nBasis,nAlpha,nBeta,nOcc,nVirt)
-!       call Nfi_vec_T0%print(iOut,"Nfi_vec_T0 vector")
-!     end if
-!     write(*,*) "Orthogonal vectors all good"
+      do i = nOV + 1,2*nOV
+        tmpMQC1 = CAlpha1
+        call MQC_Variable_MatrixPermuteColumns(tmpMQC1,& 
+          det_list_1(1,i-nOv),det_list_1(2,i-nOv))
+        tmpMQC2 = MatMul(Transpose(tmpMQC1%subMatrix([1,nBasis],[1,nAlpha])),  &
+          MatMul(overlap_mat,CAlpha2%subMatrix([1,nBasis],[1,nAlpha])))
+        Nij_a = tmpMQC2%det()
+        tmpMQC3 = MatMul(Transpose(CBeta1%subMatrix([1,nBasis],[1,nBeta])),  &
+          MatMul(overlap_mat,CBeta2%subMatrix([1,nBasis],[1,nBeta])))
+        Nij_b = tmpMQC3%det()
+        Nij = Nij_a*Nij_b
+        Nij = abs(Nij)
+        call Nfi_vec_S0%put(Nij,i)
+      end do
 
-!     if(nElec.le.1 .or. nVirt.le.1) then
-!       write(*,*) "Not enough virtual or occupied orbitals for double &
-!         substituted determinants ... skipping"
-!     else
-!       Nfi_mat_SD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_1,det_2,Single_det, &
-!         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-!       call Nfi_mat_SD%print(iOut,"Nfi_mat_SD matrix")
-!       Nfi_mat_DD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_2,det_2,Double_Det, &
-!         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-!       call Nfi_mat_DD%print(iOut,"Nfi_mat_DD matrix")
-!     end if
+      call Nfi_vec_S0%print(123,"Nfi_Vec_S0 Vector")
 
-!     if(nElec.le.2 .or. nVirt.le.2) then
-!       write(*,*) "Not enough virtual or occupied orbitals for triple &
-!         substituted determinants ... skipping"
-!     else
-!       Nfi_mat_TD = NO_Overlap_mat(wavefunction_gs,wavefunction_ex,moCoeff_gs(1),moCoeff_ex(1),det_3,det_2,Triple_Det, &
-!         Double_Det,nBasis,nAlpha,nBeta,nOcc,nVirt)
-!       call Nfi_mat_TD%print(iOut,"Nfi_mat_DD matrix")
-!     end if
-!     flush(iOut)
-!
+!     Calculate Final Dipole/Overlap Integrals
+! 
+      call int_1%init(3)
+      call int_2%init(3)
+      call int_3%init(3)
+      call int_4%init(3)
+
 !     Integral #1 <psi_0|u|psi_S><psi_S|phi_0>
-!
-!     call int_1%init(3)
-!     call int_2%init(3)
-!     call int_3%init(3)
-!     call int_4%init(3)
 
-!     Nij = NO_Overlap(wavefunction_gs,moCoeff_gs(1),moCoeff_ex(1),nAlpha,nBeta)
-!     do i=1,3
-!        call int_1%put(dm_db%at(i)*Nij,i)
-!     end do
+      do i = 1,3
+        tmpMQC1 = MatMul(Transpose(CBeta1%subMatrix([1,nBasis],[1,nAlpha])),  &
+          MatMul(overlap_mat,CBeta2%subMatrix([1,nBasis],[1,nAlpha])))
+        tmpMQC2 = MatMul(Transpose(CAlpha1%subMatrix([1,nBasis],[1,nAlpha])),  &
+          MatMul(overlap_mat,CAlpha2%subMatrix([1,nBasis],[1,nAlpha])))
+        Nij_b = tmpMQC1%det()
+        Nij_a = tmpMQC2%det()
+        Nij = Nij_b*Nij_a
+        tmp_scalar = Nij*dm_db%at(i)
+        call int_1%put(tmp_scalar,i) 
+      end do
 
-!     write(*,*) "Andrew here"
-!     write(*,3000)
-!     do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_0,&
-!          dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!        call CI_Dipole_1(i)%print(iOut,"CI Dipole <S|0>") 
-!        CI_Dipole_Vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
-!        call int_1%put(dot_product(CI_Dipole_Vec,Nfi_vec_S0),i)
-!     enddo
-!     call int_1%print(iOut,"Contribution from integral 1")
-!
-!     Integral #2 a_mp2<psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_0>
-!     <D|S>
-!
-!     write(*,3100)
-!     do i=1,3
-!       call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-!          dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!       call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
-!       test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_1(i),Nfi_vec_S0) 
-!       call int_2%put(dot_product(mp2_amps_gs,test_vec),i)
-!     enddo
+      do i = 1,nOV
+        tmp_scalar = dipoleIntegrals0SX%at(i)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(1),1) 
+      end do
 
-!     <D|D>
-!     if(nElec.le.1 .or. nVirt.le.1) then
-!       write(*,*) "Not enough virtual or occupied orbitals for double &
-!         substituted determinants"
-!     else
-!       do i=1,3
-!        call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-!          dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
-!        call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|D>")
-!        test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_2(i),Nfi_vec_D0) 
-!        call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
-!       enddo
-!     end if
-!     <D|T>
-!     if(nElec.le.2 .or. nVirt.le.2) then
-!       write(*,*) "Not enough virtual or occupied orbitals for triply &
-!         substituted determinants"
-!     else 
-!       do i=1,3
-!         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_2,&
-!           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
-!         call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
-!         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
-!         call int_2%put((dot_product(mp2_amps_gs,test_vec)+int_2%at(i)),i)
-!       enddo
-!     end if
+      do i = nOV+1,2*nOV
+        tmp_scalar = dipoleIntegrals0SX%at(i-nOV)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(1),1) 
+      end do
 
-!     call int_2%print(iOut,"Contribution from integral 2")
-!
-!     Compute Integral #3 b_mp2<psi_0|u|psi_S><psi_S|phi_D>
-!     <0|S> Need Nfi_Mat
-!     write(*,3200)
-!       do i=1,3
-!         call mqc_build_ci_hamiltonian(iOut,4,wavefunction_gs%nBasis,det_0,&
-!           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Ref_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!         call CI_Dipole_1(i)%print(iOut,"CI Dipole <O|S>")
-!         CI_Dipole_Vec = CI_Dipole_1(i)%vat(Rows=[1],Cols=[0])
-!         test_vec = MQC_VectorMatrixDotProduct(CI_Dipole_Vec,Nfi_mat_SD) 
-!         test_vec = test_vec%transpose()
-!         call int_3%put((dot_product(mp2_amps_ex,test_vec)),i)
-!        ! test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_3(i),Nfi_vec_T0) 
-!         !call int_3%put((dot_product(mp2_amps_gs,test_vec)),i)
-!       enddo
-!     call int_3%print(iOut,"Contribution from integral 3")
-!
-!     Compute Integral #4 <psi_D|u|psi_S+psi_D+psi_T><psi_S+psi_D+psi_T|phi_D>
-!
-!     write(*,3300)
-!     <D|S>
-!     do i=1,3
-!       call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-!          dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_1(i),subs=Double_Det,Dets2=det_1,Subs2=Single_Det,doS2=.false.)
-!       call CI_Dipole_1(i)%print(iOut,"CI Dipole <D|S>")
-!       tmp_mqc_mat = matmul(CI_Dipole_1(i),Nfi_mat_SD) 
-!       call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat),i)
-!     enddo
-!     write(*,*) "on the edge of greatness!!!"
-!     <D|D>
-!     if(nElec.le.1 .or. nVirt.le.1) then
-!       write(*,*) "Not enough virtual or occupied orbitals for double &
-!         substituted determinants"
-!     else
-!       do i=1,3
-!         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-!           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_2(i),subs=Double_Det,Dets2=det_2,Subs2=Double_Det,doS2=.false.)
-!         call CI_Dipole_2(i)%print(iOut,"CI Dipole <D|D>")
-!         tmp_mqc_mat = matmul(CI_Dipole_2(i),Nfi_mat_DD) 
-!         test_vec = MQC_MatrixVectorDotProduct(CI_Dipole_2(i),Nfi_vec_D0) 
-!         call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat)+int_4%at(i),i)
-!       enddo
-!     end if
-!     <D|T>
-!     if(nElec.le.2 .or. nVirt.le.2) then
-!       write(*,*) "Not enough virtual or occupied orbitals for triply &
-!         substituted determinants"
-!     else 
-!       do i=1,3
-!         call mqc_build_ci_hamiltonian(iOut,iPrint,wavefunction_gs%nBasis,det_2,&
-!           dipoleMO_gs(i),CI_Hamiltonian=CI_Dipole_3(i),subs=Double_Det,Dets2=det_3,Subs2=Triple_Det,doS2=.false.)
-!         call CI_Dipole_3(i)%print(iOut,"CI Dipole <D|T>")
-!         tmp_mqc_mat = matmul(CI_Dipole_3(i),Nfi_mat_TD) 
-!         call int_4%put(mqc_matrix_matrix_contraction(mp2_mat,tmp_mqc_mat)+int_4%at(i),i)
-!       enddo
-!     end if
+      do i = 1,nOV
+        tmp_scalar = dipoleIntegrals0SY%at(i)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(2),3) 
+      end do
 
-!     call int_4%print(iOut,"Contribution from integral 4")
+      do i = nOV+1,2*nOV
+        tmp_scalar = dipoleIntegrals0SY%at(i-nOV)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(2),3) 
+      end do
 
+      do i = 1,nOV
+        tmp_scalar = dipoleIntegrals0SZ%at(i)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(3),3) 
+      end do
+
+      do i = nOV+1,2*nOV
+        tmp_scalar = dipoleIntegrals0SZ%at(i-nOV)*Nfi_vec_S0%at(i)
+        call int_1%put(tmp_scalar + int_1%at(3),3) 
+      end do
+
+      call int_1%print(iOut,"Integral 1")
+
+!     Dipole dot_product(dipoleIntegrals0SX,Nfi_vec_SO)
+
+!     dipoleIntegralsOSX
+!     dipoleIntegralsOSy
+!     dipoleIntegralsOSz
+!     Nfi_vec_S0
+
+      dipoleStrength = 0.0
       call tdm_ci_au%init(3)
       do i = 1,3
-!       call tdm_ci_au%put(int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
-!       call tdm_ci_au%print(iOut,"TDM CI Dipole")
+        call tdm_ci_au%put(int_1%at(i)+int_2%at(i)+int_3%at(i)+int_4%at(i),i)
       end do
+
+      call tdm_ci_au%print(iOut,"TDM CI Dipole")
+!
+!     Calculate final oscillator strength using DDNO code
+!
+
+      call get_T_Overlap(PMatrixAlpha1,PMatrixAlpha2, &
+        overlap_mat,CAlpha2,nAlpha,nbasis,TDoverlapAlpha)
+      call get_T_Overlap(PMatrixBeta1,PMatrixBeta2, &
+        overlap_mat,CBeta2,nBeta,nbasis,TDoverlapBeta)
+      tmpvec_1 = tdm_ci_au
+      dipoleStrength = dot_product(tmpvec_1,tmpvec_1) 
+      dipoleStrength = TDoverlapAlpha*TDoverlapAlpha*TDoverlapBeta*TDoverlapBeta* &
+        dipoleStrength
+      oscillatorStrength = float(2)*deltaSCFEnergy/float(3)
+      oscillatorStrength = oscillatorStrength*dipoleStrength
+      write(iOut,6000) dipoleStrength
+      write(iOut,6100) oscillatorStrength
 
   999 Continue
       call cpu_time(timeEnd)
