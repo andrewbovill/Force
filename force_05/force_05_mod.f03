@@ -41,8 +41,6 @@
       do i = 1,3
               dipoleEV(i)=matmul(matmul(dagger(bra),dipole(i)),ket)
       enddo
-
-      !call dipoleEV(1)%print(iOut,'dipolev1')
       
       end function dipole_expectation_value
 
@@ -270,7 +268,6 @@
 !     doubles, or triples and a reference determinant (which is either the
 !     ground state or excited state
 !
-
       implicit none
       type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
       type(mqc_vector)::Nfi_vec,aString,bString
@@ -292,7 +289,7 @@
   1x,i3,1x,"occ_swap_int 1 value:",1x,i3,1x,"occ_swap_int 2 value:",1x,i3)
 
       overlap = wavefunction_1%overlap_matrix
-      
+
       nOV = nOcc*nVirt
       nOV2 = (((nOcc*(nOcc-1))/2)*((nVirt*(nVirt-1))/2))
       nOV3 = (((nOcc*(nOcc-1)*(nOcc-2))/6)*((nVirt*(nVirt-1)*(nVirt-2))/6))
@@ -314,6 +311,7 @@
           call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
           tmpmatrix1 = CBeta1
           call MQC_Variable_MatrixPermuteColumns(tmpmatrix1,occ_swap_1,virt_swap_1) 
+          tmpmatrix2 =Matmul(Transpose(overlapMAT),overlapMAT)
           tmpmatrix2 = MatMul(Transpose(tmpmatrix1%subMatrix([1,nBasis],[1,nBeta])),  &
             MatMul(overlapMAT,CBeta2%subMatrix([1,nBasis],[1,nBeta])))
           Nij_b = tmpmatrix2%det()
@@ -568,5 +566,125 @@
       end select 
 
       end function NO_Overlap_mat
+
+!     function S2_vec(wavefunction,det,nBasis,nAlpha,nBeta) result(tmp_vec)
+!
+!     Returns a vector of the orthogonal elements between either singles,
+!     doubles, or triples and a reference determinant (which is either the
+!     ground state or excited state
+!
+
+!     implicit none
+!     type(mqc_pscf_wavefunction)::wavefunction
+!     type(mqc_vector)::tmp_vec
+!     type(mqc_scf_integral)::overlap,MO_overlap
+!     type(mqc_determinant)::det
+!     integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta
+!     type(mqc_scalar)::mqcnBasis
+!     integer(kind=int64):: nOv,nBit_ints
+!     integer(kind=int64),Dimension(:),Allocatable::Alpha_String_1,Alpha_String_2,Beta_String_1, &
+!       Beta_String_2
+
+!     nOV = nOcc*nVirt
+!     nBit_Ints= (nBasis/Bit_Size(0))+1 
+!     mqcnBasis = nBasis
+!     
+!     call mqc_integral_allocate(MO_overlap,'mo overlap','general',&
+!       matmul(matmul(dagger(wavefunction%getBlock('alpha')),overlap%getBlock('alpha')),wavefunction%getBlock('alpha')),&
+!       matmul(matmul(dagger(wavefunction%getBlock('beta')),overlap%getBlock('alpha')),wavefunction%getBlock('beta')),&
+!       matmul(matmul(dagger(wavefunction%getBlock('alpha')),overlap%getBlock('alpha')),wavefunction%getBlock('beta')),&
+!       matmul(matmul(dagger(wavefunction%getBlock('beta')),overlap%getBlock('alpha')),wavefunction%getBlock('alpha')))
+!
+!     1 cases to call to calculate 
+!     case(1) = <S|0> 
+!     wavefunction_1 is bra, wavefunction_2 is ket
+
+!     call tmp_vec%init(2*nOV)
+!     do i = 1,nOV
+!       Alpha_String_1 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!       Alpha_String_2 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!       Beta_String_1 = det%Strings%Beta%vat([1],[1,nBit_Ints])
+!       Beta_String_2 = det%Strings%Beta%vat([i+1],[1,nBit_Ints])
+
+!       call tmp_vec%put(S2_Mat_Elem(iOut,iPrint,mqcnBasis,Alpha_String_1,Alpha_String_2,Beta_String_1,Beta_String_2,&
+!         MO_overlap),i,'element')
+!       call tmp_vec%put(S2_Mat_Elem(iOut,iPrint,mqcnBasis,Alpha_String_1,Alpha_String_2,Beta_String_1,Beta_String_2,&
+!         MO_overlap),i,'element')
+!     end do
+!     do i = 1,nOV
+!       Alpha_String_1 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!       Alpha_String_2 = det%Strings%Alpha%vat([i+1],[1,nBit_Ints])
+!       Beta_String_1 = det%Strings%Beta%vat([1],[1,nBit_Ints])
+!       Beta_String_2 = det%Strings%Beta%vat([1],[1,nBit_Ints])
+!       call tmp_vec%put(S2_Mat_Elem(iOut,iPrint,mqcnBasis,Alpha_String_1,Alpha_String_2,Beta_String_1,Beta_String_2,&
+!         MO_overlap),i+nOV,'element')
+!     end do
+
+!     end function S2_vec
+
+!     function S2_mat(wavefunction_1,wavefunction_2,moCoeff_1,moCoeff_2,det, & 
+!         Swap_Det,nBasis,nAlpha,nBeta,nOcc,nVirt,CAlpha1,CAlpha2,CBeta1,CBeta2,overlapMAT) result(Nfi_vec)
+!
+!     Returns a vector of the orthogonal elements between either singles,
+!     doubles, or triples and a reference determinant (which is either the
+!     ground state or excited state
+!
+
+!     implicit none
+!     type(mqc_pscf_wavefunction)::wavefunction_1,wavefunction_2
+!     type(mqc_vector)::S2_vec
+!     type(mqc_scf_integral)::overlap,MO_overlap,moCoeff_1,moCoeff_2
+!     type(mqc_determinant)::det
+!     integer(kind=int64),intent(in)::nBasis,nAlpha,nBeta
+!     integer(kind=int64):: nOv
+!     integer(kind=int64),Dimension(:),Allocatable::Alpha_String_1,Alpha_String_2,Beta_String_1, &
+!       Beta_String_2
+
+!1090  Format(1x,"swap_int at i: ",1x,i3,1x,"has value: ",b31)
+!2080  Format(1x,"virt_swap_int 1:",1x,i3,1x,"occ_swap_int 1 value:",1x,i3)
+!2090  Format(1x,"virt_swap_int 1:",1x,i3,1x,"virt_swap_int 2:",&
+! 1x,i3,1x,"occ_swap_int 1 value:",1x,i3,1x,"occ_swap_int 2 value:",1x,i3)
+
+!     
+!     nOV = nOcc*nVirt
+!     nBit_Ints= (nBasis/Bit_Size(0))+1 
+      
+!     call mqc_integral_allocate(MO_overlap,'mo overlap','general',&
+!       matmul(matmul(dagger(wavefunction_1%getBlock('alpha')),overlap%getBlock('alpha')),wavefunction_1%getBlock('alpha')),&
+!       matmul(matmul(dagger(wavefunction_1%getBlock('beta')),overlap%getBlock('alpha')),wavefunction_1%getBlock('beta')),&
+!       matmul(matmul(dagger(wavefunction_1%getBlock('alpha')),overlap%getBlock('alpha')),wavefunction_1%getBlock('beta')),&
+!       matmul(matmul(dagger(wavefunction_1%getBlock('beta')),overlap%getBlock('alpha')),wavefunction_1%getBlock('alpha')))
+
+!
+!     1 cases to call to calculate 
+!     case(1) = <S|0> 
+!     wavefunction_1 is bra, wavefunction_2 is ket
+
+!     select case (Swap_Det(1))
+!     case (1)
+!       write(*,*) "Case 1 selected"
+!       ket_occ=mqc_integral_output_block(moCoeff_2%orbitals('occupied',[nAlpha],[nBeta]),'full')
+!       call Nfi_vec%init(2*nOV)
+!       do i = 1,nOV
+!         call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
+!         Alpha_String_1 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!         Alpha_String_2 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!         Beta_String_1 = det%Strings%Beta%vat([1],[1,nBit_Ints])
+!         Beta_String_2 = det%Strings%Beta%vat([i+1],[1,nBit_Ints])
+!         call S2_vec%put(S2_Mat_Elem(iOut,iPrint,nBasis,Alpha_String_1,Alpha_String_2,Beta_String_1,Beta_String_2,&
+!           MO_overlap,i,'element'))
+!       end do
+!       do i = nOv+1,2*nOV
+!         call det_to_swap_1(swap_int,virt_swap_1,occ_swap_1,nAlpha,nBasis)
+!         Alpha_String_1 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!         Alpha_String_2 = det%Strings%Alpha%vat([1],[1,nBit_Ints])
+!         Beta_String_1 = det%Strings%Beta%vat([1],[1,nBit_Ints])
+!         Beta_String_2 = det%Strings%Beta%vat([i+1],[1,nBit_Ints])
+!         call S2_vec%put(S2_Mat_Elem(iOut,iPrint,nBasis,Alpha_String_1,Alpha_String_2,Beta_String_1,Beta_String_2,&
+!           MO_overlap,i,'element'))
+!       end do
+!     end select 
+
+!     end function S2_mat
 
       end module force_05_mod
